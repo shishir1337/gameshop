@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { ThemeProvider } from "@/components/theme-provider";
+import { EmailVerificationProvider } from "@/components/email-verification-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,12 +28,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <EmailVerificationProvider>
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
+          </EmailVerificationProvider>
+        </ThemeProvider>
       </body>
+
     </html>
   );
 }
