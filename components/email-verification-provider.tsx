@@ -13,6 +13,34 @@ export function EmailVerificationProvider({ children }: { children: React.ReactN
     checkUserVerification();
   }, []);
 
+  // Sync profile image for OAuth users after login
+  useEffect(() => {
+    if (user && hasOAuthAccount) {
+      // Sync profile image from OAuth provider (always sync to ensure it's up to date)
+      // Use a small delay to ensure OAuth callback has completed
+      const syncTimer = setTimeout(() => {
+        fetch("/api/auth/sync-oauth-profile", {
+          method: "POST",
+          credentials: "include",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.updated && data.user?.image) {
+              // Refresh user data to get updated image
+              setTimeout(() => {
+                checkUserVerification();
+              }, 300);
+            }
+          })
+          .catch(() => {
+            // Silently fail - not critical
+          });
+      }, 1000); // Wait 1 second after login to ensure OAuth callback completed
+
+      return () => clearTimeout(syncTimer);
+    }
+  }, [user, hasOAuthAccount]);
+
   const checkUserVerification = async () => {
     try {
       const response = await fetch("/api/auth/me", {

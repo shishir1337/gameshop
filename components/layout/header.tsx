@@ -41,6 +41,17 @@ export function Header() {
     checkSession();
   }, [pathname]);
 
+  // Also check session periodically to catch OAuth profile updates
+  useEffect(() => {
+    if (user) {
+      const interval = setInterval(() => {
+        checkSession();
+      }, 5000); // Check every 5 seconds when user is logged in
+
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
   const checkSession = async () => {
     try {
       const response = await fetch("/api/auth/me", {
