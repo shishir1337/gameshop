@@ -2,13 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { rateLimiters, getRateLimitIdentifier } from "@/lib/rate-limit";
+import { sanitizeError } from "@/lib/utils/errors";
 
 /**
  * GET /api/admin/users
- * Get all users (admin only)
+ * Get all users (admin only) with pagination
  */
 export async function GET(req: NextRequest) {
   try {
+    // Rate limiting
+    const identifier = getRateLimitIdentifier(req);
+    const rateLimitResult = await rateLimiters.admin.limit(identifier);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests. Please try again later.",
+          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
     // Check authentication
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -33,12 +53,14 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Get search query from URL params
+    // Get query parameters
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100); // Max 100 per page
+    const skip = (page - 1) * limit;
 
     // Build where clause for search
-    // For PostgreSQL, we use case-insensitive search
     const where = search
       ? {
           OR: [
@@ -48,34 +70,42 @@ export async function GET(req: NextRequest) {
         }
       : {};
 
-    // Fetch all users
-    const users = await prisma.user.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        emailVerified: true,
-        image: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    // Fetch users with pagination
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          emailVerified: true,
+          image: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.user.count({ where }),
+    ]);
 
     return NextResponse.json({
       users,
-      total: users.length,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: skip + limit < total,
+      },
     });
-  } catch (error: any) {
-    console.error("Get users error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch users" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    const { message, statusCode } = sanitizeError(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 

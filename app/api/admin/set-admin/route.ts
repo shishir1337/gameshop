@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import { rateLimiters, getRateLimitIdentifier } from "@/lib/rate-limit";
+import { sanitizeError } from "@/lib/utils/errors";
+
+const setAdminSchema = z.object({
+  userId: z.string().uuid().optional(),
+  email: z.string().email().optional(),
+}).refine((data) => data.userId || data.email, {
+  message: "Either userId or email is required",
+});
 
 /**
  * POST /api/admin/set-admin
@@ -9,6 +19,24 @@ import { prisma } from "@/lib/prisma";
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const identifier = getRateLimitIdentifier(req);
+    const rateLimitResult = await rateLimiters.admin.limit(identifier);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests. Please try again later.",
+          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
     // Check authentication
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -33,19 +61,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate input
     const body = await req.json();
-    const { userId, email } = body;
+    const validationResult = setAdminSchema.safeParse(body);
 
-    if (!userId && !email) {
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "userId or email is required" },
+        {
+          error: validationResult.error.issues[0]?.message || "Invalid input",
+          details: validationResult.error.issues,
+        },
         { status: 400 }
       );
     }
 
+    const { userId, email } = validationResult.data;
+
     // Find user by ID or email
     const user = await prisma.user.findUnique({
-      where: userId ? { id: userId } : { email },
+      where: userId ? { id: userId } : { email: email! },
     });
 
     if (!user) {
@@ -70,12 +104,9 @@ export async function POST(req: NextRequest) {
         role: updatedUser.role,
       },
     });
-  } catch (error: any) {
-    console.error("Set admin error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to set admin" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    const { message, statusCode } = sanitizeError(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 

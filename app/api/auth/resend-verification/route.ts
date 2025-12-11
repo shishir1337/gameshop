@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendVerificationEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { resendVerificationSchema } from "@/lib/validations/auth";
+import { generateOTPWithExpiry } from "@/lib/utils/otp";
+import { rateLimiters, getRateLimitIdentifier } from "@/lib/rate-limit";
+import { sanitizeError } from "@/lib/utils/errors";
 
 /**
  * POST /api/auth/resend-verification
@@ -10,15 +12,38 @@ import { headers } from "next/headers";
  */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { email } = body;
-
-    if (!email) {
+    // Rate limiting
+    const identifier = getRateLimitIdentifier(req);
+    const rateLimitResult = await rateLimiters.resendVerification.limit(identifier);
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: "Email is required" },
+        {
+          error: "Too many requests. Please try again later.",
+          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
+    // Validate input
+    const body = await req.json();
+    const validationResult = resendVerificationSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: validationResult.error.issues[0]?.message || "Invalid email address",
+        },
         { status: 400 }
       );
     }
+
+    const { email } = validationResult.data;
 
     // Check if user exists
     const user = await prisma.user.findUnique({
@@ -42,10 +67,8 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Generate new 6-digit OTP code
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 15); // 15 minutes expiry
+      // Generate cryptographically secure OTP
+      const { code: otpCode, expiresAt } = generateOTPWithExpiry(15);
 
       await prisma.verification.create({
         data: {
@@ -56,11 +79,16 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Send email using Resend
-      await sendVerificationEmail({
+      // Send email using Resend (non-blocking)
+      sendVerificationEmail({
         email: user.email,
         otpCode,
         firstName: user.name || undefined,
+      }).catch((error) => {
+        // Log error but don't fail the request
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to send verification email:", error);
+        }
       });
     }
 
@@ -69,12 +97,9 @@ export async function POST(req: NextRequest) {
       { message: "If an account with that email exists and is not verified, a verification email has been sent." },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error("Resend verification error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to resend verification email" },
-      { status: 400 }
-    );
+  } catch (error: unknown) {
+    const { message, statusCode } = sanitizeError(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 

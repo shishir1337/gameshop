@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { sanitizeError } from "@/lib/utils/errors";
 
 /**
  * GET /api/auth/me
@@ -23,6 +24,15 @@ export async function GET(req: NextRequest) {
     const { prisma } = await import("@/lib/prisma");
     const fullUser = await prisma.user.findUnique({
       where: { id: session.user.id },
+      include: {
+        accounts: {
+          where: {
+            providerId: {
+              in: ["google", "facebook"],
+            },
+          },
+        },
+      },
     });
 
     if (!fullUser) {
@@ -31,6 +41,10 @@ export async function GET(req: NextRequest) {
         session: session.session,
       });
     }
+
+    // If user has OAuth accounts (Google/Facebook), their email is verified
+    const hasOAuthAccount = fullUser.accounts.length > 0;
+    const emailVerified = hasOAuthAccount ? true : fullUser.emailVerified;
 
     // Return user with role information
     // Type assertion needed because Prisma types might not include role yet
@@ -41,7 +55,7 @@ export async function GET(req: NextRequest) {
         id: fullUser.id,
         name: fullUser.name,
         email: fullUser.email,
-        emailVerified: fullUser.emailVerified,
+        emailVerified: emailVerified,
         image: fullUser.image,
         role: userWithRole.role || "user", // Default to "user" if role is missing
         createdAt: fullUser.createdAt,
@@ -49,11 +63,9 @@ export async function GET(req: NextRequest) {
       },
       session: session.session,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Failed to get user" },
-      { status: 400 }
-    );
+  } catch (error: unknown) {
+    const { message, statusCode } = sanitizeError(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 

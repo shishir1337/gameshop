@@ -10,6 +10,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { SocialLoginButtons } from "@/components/social-login-buttons";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -104,6 +105,7 @@ export default function LoginPage() {
                 "Login"
               )}
             </Button>
+            <SocialLoginButtons callbackURL="/" mode="login" />
             <div className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}
               <Link href="/register" className="text-primary hover:underline">

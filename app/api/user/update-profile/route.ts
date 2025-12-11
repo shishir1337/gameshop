@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { updateProfileSchema } from "@/lib/validations/auth";
+import { sanitizeError } from "@/lib/utils/errors";
 
 /**
  * PUT /api/user/update-profile
@@ -21,23 +23,21 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const { name, image } = body;
-
     // Validate input
-    if (name !== undefined && typeof name !== "string") {
+    const body = await req.json();
+    const validationResult = updateProfileSchema.safeParse(body);
+
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Name must be a string" },
+        {
+          error: validationResult.error.issues[0]?.message || "Invalid input",
+          details: validationResult.error.issues,
+        },
         { status: 400 }
       );
     }
 
-    if (image !== undefined && typeof image !== "string") {
-      return NextResponse.json(
-        { error: "Image must be a string URL" },
-        { status: 400 }
-      );
-    }
+    const { name, image } = validationResult.data;
 
     // Update user profile
     const updatedUser = await prisma.user.update({
@@ -62,12 +62,9 @@ export async function PUT(req: NextRequest) {
         updatedAt: updatedUser.updatedAt,
       },
     });
-  } catch (error: any) {
-    console.error("Profile update error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to update profile" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    const { message, statusCode } = sanitizeError(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 

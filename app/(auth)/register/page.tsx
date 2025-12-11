@@ -10,6 +10,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { SocialLoginButtons } from "@/components/social-login-buttons";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -114,17 +115,12 @@ export default function RegisterPage() {
                 "Create Account"
               )}
             </Button>
+            <SocialLoginButtons callbackURL="/" mode="register" />
             <div className="text-sm text-center text-muted-foreground space-y-2">
               <div>
                 Already have an account?{" "}
                 <Link href="/login" className="text-primary hover:underline">
                   Sign in
-                </Link>
-              </div>
-              <div>
-                Didn't receive verification email?{" "}
-                <Link href="/resend-verification" className="text-primary hover:underline">
-                  Resend verification email
                 </Link>
               </div>
             </div>

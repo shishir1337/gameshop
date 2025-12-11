@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resetPasswordSchema } from "@/lib/validations/auth";
+import { sanitizeError } from "@/lib/utils/errors";
 
 /**
  * POST /api/auth/reset-password
@@ -7,18 +9,28 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(req: NextRequest) {
   try {
+    // Validate input
     const body = await req.json();
-    const { token, password } = body;
+    const validationResult = resetPasswordSchema.safeParse(body);
 
-    if (!token || !password) {
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Token and password are required" },
+        {
+          error: validationResult.error.issues[0]?.message || "Invalid input",
+          details: validationResult.error.issues,
+        },
         { status: 400 }
       );
     }
 
+    const { token, password } = validationResult.data;
+
     // Forward to Better Auth's reset-password endpoint
-    const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.BETTER_AUTH_URL;
+    if (!baseUrl) {
+      throw new Error("BETTER_AUTH_URL is not configured");
+    }
+
     const response = await fetch(`${baseUrl}/api/auth/reset-password`, {
       method: "POST",
       headers: {
@@ -40,11 +52,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       message: "Password reset successfully",
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Failed to reset password" },
-      { status: 400 }
-    );
+  } catch (error: unknown) {
+    const { message, statusCode } = sanitizeError(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 
