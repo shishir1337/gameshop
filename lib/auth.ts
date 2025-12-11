@@ -3,6 +3,10 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { genericOAuth } from "better-auth/plugins";
 import { prisma } from "./prisma";
+import { getSessionRedisClient, isRedisConnected } from "./redis";
+
+// Get Redis client for session storage
+const redisClient = getSessionRedisClient();
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -14,6 +18,48 @@ export const auth = betterAuth({
   },
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_URL!,
+  // Use Redis for session storage if available
+  ...(redisClient && isRedisConnected()
+    ? {
+        secondaryStorage: {
+          get: async (key: string) => {
+            try {
+              const value = await redisClient.get(key);
+              return value ? JSON.parse(value) : null;
+            } catch (error) {
+              console.error("Redis get error:", error);
+              return null;
+            }
+          },
+          set: async (key: string, value: unknown, ttl?: number) => {
+            try {
+              const serialized = JSON.stringify(value);
+              if (ttl) {
+                await redisClient.setex(key, ttl, serialized);
+              } else {
+                await redisClient.set(key, serialized);
+              }
+            } catch (error) {
+              console.error("Redis set error:", error);
+            }
+          },
+          delete: async (key: string) => {
+            try {
+              await redisClient.del(key);
+            } catch (error) {
+              console.error("Redis delete error:", error);
+            }
+          },
+        },
+        session: {
+          cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60, // 5 minutes cache
+            refreshCache: false, // Disable stateless refresh
+          },
+        },
+      }
+    : {}),
   plugins: [
     nextCookies(),
     genericOAuth({

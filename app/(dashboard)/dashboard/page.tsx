@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/app/actions/user";
 import { getInitials } from "@/lib/utils/user";
 
+// Force dynamic rendering since we use headers() for authentication
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   // Fetch user data on the server
   const userResult = await getCurrentUser();

@@ -9,67 +9,78 @@ import type { UpdateProfileRequest, UpdateProfileResponse } from "@/types/api";
 import type { UserProfile } from "@/types";
 
 /**
- * Server Action: Get current authenticated user
- * This replaces the API route for better type safety and SSR support
+ * Internal function to fetch current user (without caching)
+ * This is used by the cached version below
  */
-export async function getCurrentUser(): Promise<{ user: UserProfile } | { error: string }> {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+async function fetchCurrentUserInternal(): Promise<{ user: UserProfile } | { error: string }> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-    if (!session) {
-      return { error: "Not authenticated" };
-    }
+  if (!session) {
+    return { error: "Not authenticated" };
+  }
 
-    // Fetch full user data including role from database
-    const fullUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: {
-        accounts: {
-          where: {
-            providerId: {
-              in: ["google", "facebook"],
-            },
+  // Fetch full user data including role from database
+  const fullUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: {
+      accounts: {
+        where: {
+          providerId: {
+            in: ["google", "facebook"],
           },
         },
       },
-    });
+    },
+  });
 
-    if (!fullUser) {
-      // Fallback to session user if not found in DB
-      const userProfile: UserProfile = {
-        id: session.user.id,
-        name: session.user.name ?? null,
-        email: session.user.email,
-        emailVerified: session.user.emailVerified ?? false,
-        image: session.user.image ?? null,
-        role: "user",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      return { user: userProfile };
-    }
-
-    // If user has OAuth accounts (Google/Facebook), their email is verified
-    const hasOAuthAccount = fullUser.accounts.length > 0;
-    const emailVerified = hasOAuthAccount ? true : fullUser.emailVerified;
-
-    // Return user with role information
-    const userWithRole = fullUser as typeof fullUser & { role?: string };
-    
+  if (!fullUser) {
+    // Fallback to session user if not found in DB
     const userProfile: UserProfile = {
-      id: fullUser.id,
-      name: fullUser.name,
-      email: fullUser.email,
-      emailVerified: emailVerified,
-      image: fullUser.image,
-      role: userWithRole.role || "user",
-      createdAt: fullUser.createdAt,
-      updatedAt: fullUser.updatedAt,
+      id: session.user.id,
+      name: session.user.name ?? null,
+      email: session.user.email,
+      emailVerified: session.user.emailVerified ?? false,
+      image: session.user.image ?? null,
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
-
     return { user: userProfile };
+  }
+
+  // If user has OAuth accounts (Google/Facebook), their email is verified
+  const hasOAuthAccount = fullUser.accounts.length > 0;
+  const emailVerified = hasOAuthAccount ? true : fullUser.emailVerified;
+
+  // Return user with role information
+  const userWithRole = fullUser as typeof fullUser & { role?: string };
+  
+  const userProfile: UserProfile = {
+    id: fullUser.id,
+    name: fullUser.name,
+    email: fullUser.email,
+    emailVerified: emailVerified,
+    image: fullUser.image,
+    role: userWithRole.role || "user",
+    createdAt: fullUser.createdAt,
+    updatedAt: fullUser.updatedAt,
+  };
+
+  return { user: userProfile };
+}
+
+/**
+ * Server Action: Get current authenticated user
+ * This replaces the API route for better type safety and SSR support
+ * Note: Cannot cache due to dynamic headers() usage for authentication
+ */
+export async function getCurrentUser(): Promise<{ user: UserProfile } | { error: string }> {
+  try {
+    // Cannot use unstable_cache here because we need headers() for auth
+    // The session check must happen on every request
+    return await fetchCurrentUserInternal();
   } catch (error: unknown) {
     const { message } = sanitizeError(error);
     return { error: message };
@@ -114,6 +125,9 @@ export async function updateProfile(
         ...(image !== undefined && { image }),
       },
     });
+
+    // Note: Cache will automatically expire based on revalidate time
+    // Manual revalidation can be added when needed
 
     const userProfile: UserProfile = {
       id: updatedUser.id,

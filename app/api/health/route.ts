@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import Redis from "ioredis";
+import { getRedisClient, isRedisConnected } from "@/lib/redis";
 
 /**
  * GET /api/health
@@ -25,19 +25,16 @@ export async function GET() {
     health.status = "unhealthy";
   }
 
-  // Check Redis connectivity
+  // Check Redis connectivity using shared client
   if (process.env.REDIS_URL) {
     try {
-      const redis = new Redis(process.env.REDIS_URL, {
-        maxRetriesPerRequest: 1,
-        connectTimeout: 2000,
-        lazyConnect: true,
-      });
-
-      await redis.connect();
-      await redis.ping();
-      await redis.quit();
-      health.services.redis = "connected";
+      const redis = getRedisClient();
+      if (redis && isRedisConnected()) {
+        await redis.ping();
+        health.services.redis = "connected";
+      } else {
+        health.services.redis = "disconnected";
+      }
     } catch (error) {
       health.services.redis = "disconnected";
       // Redis failure doesn't make the app unhealthy, just degraded

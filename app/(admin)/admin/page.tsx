@@ -8,6 +8,9 @@ import { getAdminStats } from "@/app/actions/admin";
 import { getInitials } from "@/lib/utils/user";
 import type { AdminUser, AdminOrder } from "@/types";
 
+// Force dynamic rendering since we use headers() for authentication
+export const dynamic = 'force-dynamic';
+
 export default async function AdminDashboardPage() {
   // Fetch stats on the server
   let stats;

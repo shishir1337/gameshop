@@ -16,16 +16,20 @@ import { getInitials } from "@/lib/utils/user";
 import { AdminUsersSearch } from "./users-search";
 import type { AdminUser } from "@/types";
 
+// Force dynamic rendering since we use headers() for authentication
+export const dynamic = 'force-dynamic';
+
 interface AdminUsersPageProps {
-  searchParams: {
+  searchParams: Promise<{
     search?: string;
     page?: string;
-  };
+  }>;
 }
 
 export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
-  const search = searchParams.search || "";
-  const page = parseInt(searchParams.page || "1", 10);
+  const params = await searchParams;
+  const search = params.search || "";
+  const page = parseInt(params.page || "1", 10);
 
   // Fetch users on the server
   let usersData;

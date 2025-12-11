@@ -1,5 +1,8 @@
 import Image from "next/image";
 
+// Enable ISR: Revalidate every hour (3600 seconds)
+export const revalidate = 3600;
+
 export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">

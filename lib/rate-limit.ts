@@ -1,47 +1,13 @@
 import Redis from "ioredis";
+import { getRedisClient, isRedisConnected } from "./redis";
 
 /**
  * Rate limiting configuration
  * Uses self-hosted Redis for rate limiting
  */
 
-// Initialize Redis client
-let redis: Redis | null = null;
-let useRedis = false;
-
-if (process.env.REDIS_URL) {
-  try {
-    redis = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
-      reconnectOnError: (err) => {
-        const targetError = "READONLY";
-        if (err.message.includes(targetError)) {
-          return true; // Reconnect on READONLY error
-        }
-        return false;
-      },
-    });
-
-    redis.on("error", (err) => {
-      console.error("Redis connection error:", err);
-      useRedis = false;
-    });
-
-    redis.on("connect", () => {
-      console.log("Redis connected successfully");
-      useRedis = true;
-    });
-
-    useRedis = true;
-  } catch (error) {
-    console.warn("Failed to initialize Redis, using in-memory rate limiting:", error);
-    useRedis = false;
-  }
-}
+// Note: Redis client is now managed by lib/redis.ts
+// We check connection status dynamically in createRateLimiter
 
 // In-memory rate limiter fallback (for development)
 class InMemoryRateLimit {
@@ -167,8 +133,12 @@ class RedisRateLimiter {
  * Create a rate limiter with specific limits
  */
 export function createRateLimiter(limit: number, window: number) {
-  if (useRedis && redis) {
-    return new RedisRateLimiter(redis, limit, window);
+  // Check Redis connection dynamically
+  const currentRedis = getRedisClient();
+  const redisAvailable = isRedisConnected() && currentRedis !== null;
+
+  if (redisAvailable && currentRedis) {
+    return new RedisRateLimiter(currentRedis, limit, window);
   }
 
   // Fallback to in-memory for development
@@ -209,11 +179,12 @@ export function getRateLimitIdentifier(req: Request): string {
 
 /**
  * Close Redis connection (for cleanup)
+ * Note: This now uses the shared Redis client from lib/redis.ts
+ * Consider using closeRedisConnection from lib/redis.ts instead
  */
 export async function closeRedisConnection() {
-  if (redis) {
-    await redis.quit();
-    redis = null;
-    useRedis = false;
-  }
+  // Redis connection is managed by lib/redis.ts
+  // This function is kept for backward compatibility
+  const { closeRedisConnection: closeSharedRedis } = await import("./redis");
+  await closeSharedRedis();
 }
