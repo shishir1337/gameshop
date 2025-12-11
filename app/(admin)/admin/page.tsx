@@ -1,54 +1,23 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, ShoppingBag, Package, DollarSign, Activity, ArrowUpRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getAdminStats } from "@/app/actions/admin";
-import type { AdminStats, AdminUser, AdminOrder } from "@/types";
+import { getInitials } from "@/lib/utils/user";
+import type { AdminUser, AdminOrder } from "@/types";
 
-export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<AdminStats>({
-    totalUsers: 0,
-    totalProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    recentOrders: [],
-    recentUsers: [],
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const data = await getAdminStats();
-      setStats(data.stats);
-    } catch (error) {
-      console.error("Failed to fetch stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (email) {
-      return email[0].toUpperCase();
-    }
-    return "U";
-  };
+export default async function AdminDashboardPage() {
+  // Fetch stats on the server
+  let stats;
+  try {
+    const result = await getAdminStats();
+    stats = result.stats;
+  } catch (error) {
+    // If unauthorized, redirect
+    redirect("/dashboard");
+  }
 
   return (
     <div className="space-y-6">
@@ -122,11 +91,7 @@ export default function AdminDashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
-            ) : stats.recentOrders.length === 0 ? (
+            {stats.recentOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Activity className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No orders yet</h3>
@@ -177,11 +142,7 @@ export default function AdminDashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
-            ) : stats.recentUsers.length === 0 ? (
+            {stats.recentUsers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No users yet</h3>
@@ -199,7 +160,7 @@ export default function AdminDashboardPage() {
                           <AvatarImage src={user.image} alt={user.name || "User"} />
                         )}
                         <AvatarFallback>
-                          {getInitials(user.name || undefined, user.email)}
+                          {getInitials(user.name, user.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
@@ -222,4 +183,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-

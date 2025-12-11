@@ -1,75 +1,38 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingBag, Package, TrendingUp, DollarSign } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import type { UserProfile } from "@/types";
+import { getCurrentUser } from "@/app/actions/user";
+import { getInitials } from "@/lib/utils/user";
 
-export default function DashboardPage() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [stats, setStats] = useState({
+export default async function DashboardPage() {
+  // Fetch user data on the server
+  const userResult = await getCurrentUser();
+
+  if ("error" in userResult) {
+    redirect("/login");
+  }
+
+  const user = userResult.user;
+
+  // TODO: Implement actual stats fetching from Server Action
+  // For now, using placeholder data
+  const stats = {
     totalOrders: 0,
     pendingOrders: 0,
     totalSpent: 0,
-    recentOrders: [],
-  });
-
-  useEffect(() => {
-    fetchUserData();
-    fetchStats();
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-    }
-  };
-
-  const fetchStats = async () => {
-    // TODO: Implement actual stats fetching from API
-    // For now, using placeholder data
-    setStats({
-      totalOrders: 0,
-      pendingOrders: 0,
-      totalSpent: 0,
-      recentOrders: [],
-    });
-  };
-
-  const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (email) {
-      return email[0].toUpperCase();
-    }
-    return "U";
+    recentOrders: [] as never[],
   };
 
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-3xl font-bold">Welcome back{user?.name ? `, ${user.name}` : ""}!</h1>
+        <h1 className="text-3xl font-bold">Welcome back{user.name ? `, ${user.name}` : ""}!</h1>
         <p className="text-muted-foreground mt-1">
-          Here's what's happening with your account today.
+          Here&apos;s what&apos;s happening with your account today.
         </p>
       </div>
 
@@ -81,18 +44,18 @@ export default function DashboardPage() {
         <CardContent>
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              {user?.image && (
+              {user.image && (
                 <AvatarImage src={user.image} alt={user.name || "User"} />
               )}
               <AvatarFallback className="text-lg">
-                {getInitials(user?.name || undefined, user?.email || undefined)}
+                {getInitials(user.name, user.email)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold">{user?.name || "User"}</h3>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <h3 className="text-lg font-semibold">{user.name || "User"}</h3>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
               <div className="mt-2 flex items-center gap-2">
-                {user?.emailVerified ? (
+                {user.emailVerified ? (
                   <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
                     Email Verified
                   </span>
@@ -152,7 +115,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Active</div>
-            <p className="text-xs text-muted-foreground">Member since {new Date(user?.createdAt || Date.now()).toLocaleDateString()}</p>
+            <p className="text-xs text-muted-foreground">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
           </CardContent>
         </Card>
       </div>
@@ -183,4 +146,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

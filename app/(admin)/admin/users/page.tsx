@@ -1,9 +1,5 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -13,59 +9,39 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Search, Shield, User } from "lucide-react";
+import { Users, Shield, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAdminUsers } from "@/app/actions/admin";
+import { getInitials } from "@/lib/utils/user";
+import { AdminUsersSearch } from "./users-search";
 import type { AdminUser } from "@/types";
-import type { AdminUsersResponse } from "@/types/api";
 
-export default function AdminUsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      fetchUsers();
-    }, 300); // Debounce search by 300ms
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const data: AdminUsersResponse = await getAdminUsers({
-        search: searchQuery || undefined,
-        page: 1,
-        limit: 50,
-      });
-      setUsers(data.users || []);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
+interface AdminUsersPageProps {
+  searchParams: {
+    search?: string;
+    page?: string;
   };
+}
 
-  // Users are already filtered by the API based on searchQuery
-  const filteredUsers = users;
+export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
+  const search = searchParams.search || "";
+  const page = parseInt(searchParams.page || "1", 10);
 
-  const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (email) {
-      return email[0].toUpperCase();
-    }
-    return "U";
-  };
+  // Fetch users on the server
+  let usersData;
+  try {
+    usersData = await getAdminUsers({
+      search: search || undefined,
+      page,
+      limit: 50,
+    });
+  } catch (error) {
+    // If unauthorized, redirect
+    redirect("/dashboard");
+  }
+
+  const users = usersData.users || [];
+  const pagination = usersData.pagination;
 
   return (
     <div className="space-y-6">
@@ -84,36 +60,20 @@ export default function AdminUsersPage() {
             <div>
               <CardTitle>All Users</CardTitle>
               <CardDescription>
-                {filteredUsers.length} user{filteredUsers.length !== 1 ? "s" : ""} found
+                {users.length} user{users.length !== 1 ? "s" : ""} found
+                {pagination && ` (${pagination.total} total)`}
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 w-64"
-                />
-              </div>
-            </div>
+            <AdminUsersSearch initialSearch={search} />
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Loading users...</p>
-              </div>
-            </div>
-          ) : filteredUsers.length === 0 ? (
+          {users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No users found</h3>
               <p className="text-sm text-muted-foreground">
-                {searchQuery
+                {search
                   ? "Try adjusting your search query"
                   : "No users have registered yet"}
               </p>
@@ -131,7 +91,7 @@ export default function AdminUsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {users.map((user: AdminUser) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -140,7 +100,7 @@ export default function AdminUsersPage() {
                             <AvatarImage src={user.image} alt={user.name || "User"} />
                           )}
                           <AvatarFallback>
-                            {getInitials(user.name || undefined, user.email)}
+                            {getInitials(user.name, user.email)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
@@ -175,9 +135,7 @@ export default function AdminUsersPage() {
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
+                      {/* Actions would typically be Server Actions or client components */}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -189,4 +147,3 @@ export default function AdminUsersPage() {
     </div>
   );
 }
-
