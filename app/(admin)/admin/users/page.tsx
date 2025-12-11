@@ -15,9 +15,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Users, Search, Shield, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAdminUsers } from "@/app/actions/admin";
+import type { AdminUser } from "@/types";
+import type { AdminUsersResponse } from "@/types/api";
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -32,20 +35,12 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const searchParam = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : "";
-      const response = await fetch(`/api/admin/users${searchParam}`, {
-        credentials: "include",
-        cache: "no-store",
+      const data: AdminUsersResponse = await getAdminUsers({
+        search: searchQuery || undefined,
+        page: 1,
+        limit: 50,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data.users || []);
-      } else {
-        const error = await response.json();
-        console.error("Failed to fetch users:", error);
-        setUsers([]);
-      }
+      setUsers(data.users || []);
     } catch (error) {
       console.error("Error fetching users:", error);
       setUsers([]);
@@ -76,9 +71,9 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Users Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Users Management</h1>
           <p className="text-muted-foreground mt-1">
-            Manage all registered users
+            Manage all registered users and their permissions
           </p>
         </div>
       </div>
@@ -145,7 +140,7 @@ export default function AdminUsersPage() {
                             <AvatarImage src={user.image} alt={user.name || "User"} />
                           )}
                           <AvatarFallback>
-                            {getInitials(user.name, user.email)}
+                            {getInitials(user.name || undefined, user.email)}
                           </AvatarFallback>
                         </Avatar>
                         <div>

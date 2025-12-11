@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { ConditionalHeader, ConditionalFooter } from "@/components/layout/conditional-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { EmailVerificationProvider } from "@/components/email-verification-provider";
 import "./globals.css";
@@ -41,9 +40,9 @@ export default function RootLayout({
         >
           <EmailVerificationProvider>
             <div className="flex min-h-screen flex-col">
-              <Header />
+              <ConditionalHeader />
               <main className="flex-1">{children}</main>
-              <Footer />
+              <ConditionalFooter />
             </div>
             <Toaster />
           </EmailVerificationProvider>

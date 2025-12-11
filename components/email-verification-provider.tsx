@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { EmailVerificationDialog } from "./email-verification-dialog";
+import type { UserProfile } from "@/types";
 
 export function EmailVerificationProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [hasOAuthAccount, setHasOAuthAccount] = useState(false);

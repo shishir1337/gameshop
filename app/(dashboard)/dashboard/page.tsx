@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingBag, Package, TrendingUp, DollarSign } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { UserProfile } from "@/types";
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState({
     totalOrders: 0,
     pendingOrders: 0,
@@ -81,9 +81,11 @@ export default function DashboardPage() {
         <CardContent>
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
+              {user?.image && (
+                <AvatarImage src={user.image} alt={user.name || "User"} />
+              )}
               <AvatarFallback className="text-lg">
-                {getInitials(user?.name, user?.email)}
+                {getInitials(user?.name || undefined, user?.email || undefined)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
