@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -13,8 +12,7 @@ interface SocialLoginButtonsProps {
   mode?: "login" | "register";
 }
 
-export function SocialLoginButtons({ callbackURL = "/", mode = "login" }: SocialLoginButtonsProps) {
-  const router = useRouter();
+export function SocialLoginButtons({ callbackURL = "/" }: SocialLoginButtonsProps) {
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleSocialLogin = async (providerId: "google" | "facebook") => {

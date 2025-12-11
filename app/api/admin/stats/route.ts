@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +8,7 @@ import { sanitizeError } from "@/lib/utils/errors";
  * GET /api/admin/stats
  * Get admin dashboard statistics
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const session = await auth.api.getSession({
@@ -35,10 +35,10 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch statistics
-    const [totalUsers, totalProducts, totalOrders, recentUsers] = await Promise.all([
+    // Note: Product and Order models don't exist yet in schema
+    // These will be implemented when those features are added
+    const [totalUsers, recentUsers] = await Promise.all([
       prisma.user.count(),
-      prisma.product?.count().catch(() => 0) || Promise.resolve(0),
-      prisma.order?.count().catch(() => 0) || Promise.resolve(0),
       prisma.user.findMany({
         take: 5,
         orderBy: { createdAt: "desc" },
@@ -52,46 +52,20 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    // Calculate total revenue (if orders exist)
-    let totalRevenue = 0;
-    try {
-      const orders = await prisma.order?.findMany({
-        select: {
-          total: true,
-        },
-      }).catch(() => []);
-      
-      if (orders && Array.isArray(orders)) {
-        totalRevenue = orders.reduce((sum, order) => {
-          const total = typeof order.total === 'number' ? order.total : parseFloat(order.total as any) || 0;
-          return sum + total;
-        }, 0);
-      }
-    } catch (error) {
-      // Orders table might not exist yet
-      totalRevenue = 0;
-    }
-
-    // Get recent orders (if orders exist)
-    let recentOrders: any[] = [];
-    try {
-      recentOrders = await prisma.order?.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      }).catch(() => []) || [];
-    } catch (error) {
-      // Orders table might not exist yet
-      recentOrders = [];
-    }
+    // Placeholder values until Product and Order models are added
+    const totalProducts = 0;
+    const totalOrders = 0;
+    const totalRevenue = 0;
+    const recentOrders: Array<{
+      id: string;
+      total: number | string;
+      createdAt: Date;
+      user?: {
+        id: string;
+        name: string | null;
+        email: string;
+      };
+    }> = [];
 
     return NextResponse.json({
       stats: {

@@ -2,7 +2,7 @@
  * API-specific types for request/response handling
  */
 
-import { UserProfile, AdminUser, AdminStats, AdminOrder } from "./index";
+import { UserProfile, AdminUser, AdminStats } from "./index";
 
 // ============================================================================
 // Auth API Types
@@ -20,7 +20,7 @@ export interface RegisterResponse {
     id: string;
     expiresAt: Date;
     token: string;
-  };
+  } | null;
 }
 
 export interface LoginRequest {

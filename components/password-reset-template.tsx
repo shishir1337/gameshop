@@ -1,5 +1,3 @@
-import * as React from "react";
-
 interface PasswordResetTemplateProps {
   resetLink: string;
   firstName?: string;

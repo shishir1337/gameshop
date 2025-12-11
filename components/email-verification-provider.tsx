@@ -40,6 +40,7 @@ export function EmailVerificationProvider({ children }: { children: React.ReactN
 
       return () => clearTimeout(syncTimer);
     }
+    return undefined;
   }, [user, hasOAuthAccount]);
 
   const checkUserVerification = async () => {

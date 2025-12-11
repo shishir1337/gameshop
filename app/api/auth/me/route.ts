@@ -1,13 +1,13 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { sanitizeError } from "@/lib/utils/errors";
 
 /**
  * GET /api/auth/me
  * Get the current authenticated user
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

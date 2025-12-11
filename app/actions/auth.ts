@@ -6,7 +6,6 @@ import { sendVerificationEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { registerSchema, verifyEmailSchema, resendVerificationSchema } from "@/lib/validations/auth";
 import { generateOTPWithExpiry } from "@/lib/utils/otp";
-import { rateLimiters, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { sanitizeError } from "@/lib/utils/errors";
 import type { RegisterRequest, RegisterResponse } from "@/types/api";
 import type { UserProfile } from "@/types";
@@ -81,16 +80,17 @@ export async function registerUser(
       id: result.user.id,
       name: result.user.name,
       email: result.user.email,
-      image: result.user.image,
+      image: result.user.image ?? null,
       emailVerified: result.user.emailVerified,
       role: (result.user as { role?: string }).role || "user",
       createdAt: result.user.createdAt,
       updatedAt: result.user.updatedAt,
     };
 
+    // Better Auth signUpEmail doesn't return a session - user needs to login
     return {
       user: userProfile,
-      session: result.session,
+      session: undefined,
     };
   } catch (error: unknown) {
     const { message } = sanitizeError(error);

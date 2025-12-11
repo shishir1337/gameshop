@@ -1,4 +1,3 @@
-import * as React from "react";
 
 interface EmailVerificationTemplateProps {
   firstName?: string;

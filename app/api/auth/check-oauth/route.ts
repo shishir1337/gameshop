@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +8,7 @@ import { sanitizeError } from "@/lib/utils/errors";
  * GET /api/auth/check-oauth
  * Check if the current user has OAuth accounts (Google/Facebook)
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const session = await auth.api.getSession({

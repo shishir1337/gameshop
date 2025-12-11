@@ -42,7 +42,7 @@ async function checkUserRole() {
       console.log(`\n⚠️  User is not an admin. Current role: ${user.role}`);
       console.log("Setting user as admin...");
       
-      const updatedUser = await prisma.user.update({
+      await prisma.user.update({
         where: { email },
         data: { role: "admin" },
       });

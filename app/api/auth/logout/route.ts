@@ -1,12 +1,12 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 /**
  * POST /api/auth/logout
  * Logout the current user
  */
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     await auth.api.signOut({
       headers: await headers(),
