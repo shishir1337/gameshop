@@ -19,7 +19,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, User, LogOut, LogIn } from "lucide-react";
+import { Menu, User, LogOut, LogIn, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -123,6 +123,17 @@ export function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {user.role === "admin" && (
+                  <>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link href="/admin">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
@@ -166,44 +177,57 @@ export function Header() {
                     <Skeleton className="h-9 w-full" />
                   </div>
                 ) : user ? (
-                  <div className="space-y-2">
-                    <div className="px-2 py-1.5 text-sm flex items-center gap-3">
-                      {user.image ? (
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={user.image} alt={user.name || "User"} />
-                          <AvatarFallback>
-                            {user.name
-                              ? user.name
-                                  .split(" ")
-                                  .map((n: string) => n[0])
-                                  .join("")
-                                  .toUpperCase()
-                                  .slice(0, 2)
-                              : user.email?.[0]?.toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                          <User className="h-5 w-5" />
+                    <div className="space-y-2">
+                      <div className="px-2 py-1.5 text-sm flex items-center gap-3">
+                        {user.image ? (
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.image} alt={user.name || "User"} />
+                            <AvatarFallback>
+                              {user.name
+                                ? user.name
+                                    .split(" ")
+                                    .map((n: string) => n[0])
+                                    .join("")
+                                    .toUpperCase()
+                                    .slice(0, 2)
+                                : user.email?.[0]?.toUpperCase() || "U"}
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                            <User className="h-5 w-5" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium">{user.name || "User"}</p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
                         </div>
-                      )}
-                      <div>
-                        <p className="font-medium">{user.name || "User"}</p>
-                        <p className="text-xs text-muted-foreground">{user.email}</p>
                       </div>
+                      {user.role === "admin" && (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          asChild
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Link href="/admin">
+                            <Shield className="mr-2 h-4 w-4" />
+                            Admin Dashboard
+                          </Link>
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => {
+                          handleLogout();
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        handleLogout();
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </Button>
-                  </div>
                 ) : (
                   <Button variant="outline" className="w-full" asChild>
                     <Link href="/login" onClick={() => setMobileMenuOpen(false)}>

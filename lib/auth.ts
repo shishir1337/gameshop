@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { genericOAuth } from "better-auth/plugins";
+import { genericOAuth, admin } from "better-auth/plugins";
 import { prisma } from "./prisma";
 import { getSessionRedisClient, isRedisConnected } from "./redis";
 
@@ -90,6 +90,10 @@ export const auth = betterAuth({
     : {}),
   plugins: [
     nextCookies(),
+    admin({
+      defaultRole: "user",
+      adminRoles: ["admin"],
+    }),
     genericOAuth({
       config: [
         // Google OAuth
