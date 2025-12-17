@@ -28,7 +28,7 @@ export async function GET() {
         accounts: {
           where: {
             providerId: {
-              in: ["google", "facebook"],
+              in: ["google", "discord"],
             },
           },
         },
@@ -42,7 +42,7 @@ export async function GET() {
       });
     }
 
-    // If user has OAuth accounts (Google/Facebook), their email is verified
+    // If user has OAuth accounts (Google/Discord), their email is verified
     const hasOAuthAccount = fullUser.accounts.length > 0;
     const emailVerified = hasOAuthAccount ? true : fullUser.emailVerified;
 
@@ -61,6 +61,7 @@ export async function GET() {
         createdAt: fullUser.createdAt,
         updatedAt: fullUser.updatedAt,
       },
+      hasOAuthAccount: hasOAuthAccount,
       session: session.session,
     });
   } catch (error: unknown) {

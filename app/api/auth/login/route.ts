@@ -5,33 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
 import { loginSchema } from "@/lib/validations/auth";
 import { generateOTPWithExpiry } from "@/lib/utils/otp";
-import { rateLimiters, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { sanitizeError } from "@/lib/utils/errors";
 
 /**
  * POST /api/auth/login
  * Login a user
+ * Note: Rate limiting is handled by Better Auth's built-in rate limiter
  */
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
-    const identifier = getRateLimitIdentifier(req);
-    const rateLimitResult = await rateLimiters.login.limit(identifier);
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        {
-          error: "Too many login attempts. Please try again later.",
-          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000),
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
-          },
-        }
-      );
-    }
-
     // Validate input
     const body = await req.json();
     const validationResult = loginSchema.safeParse(body);

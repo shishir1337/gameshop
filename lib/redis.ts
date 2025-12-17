@@ -2,7 +2,7 @@ import Redis from "ioredis";
 
 /**
  * Shared Redis client for the application
- * Used for both rate limiting and session storage
+ * Used for optional session storage caching (Better Auth secondary storage)
  */
 
 let redis: Redis | null = null;

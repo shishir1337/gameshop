@@ -2,33 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { forgotPasswordSchema } from "@/lib/validations/auth";
-import { rateLimiters, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { sanitizeError } from "@/lib/utils/errors";
 
 /**
  * POST /api/auth/forgot-password
  * Send password reset email using Resend
+ * Note: Rate limiting is handled by Better Auth's built-in rate limiter
  */
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
-    const identifier = getRateLimitIdentifier(req);
-    const rateLimitResult = await rateLimiters.passwordReset.limit(identifier);
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        {
-          error: "Too many password reset requests. Please try again later.",
-          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000),
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
-          },
-        }
-      );
-    }
-
     // Validate input
     const body = await req.json();
     const validationResult = forgotPasswordSchema.safeParse(body);

@@ -18,6 +18,34 @@ export const auth = betterAuth({
   },
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_URL!,
+  rateLimit: {
+    enabled: true, // Enable in all environments
+    window: 60, // 60 seconds
+    max: 100, // 100 requests per window
+    storage: "database", // Use database storage (works without Redis)
+    customRules: {
+      "/sign-in/email": {
+        window: 900, // 15 minutes
+        max: 5, // 5 login attempts per 15 minutes
+      },
+      "/sign-up/email": {
+        window: 3600, // 1 hour
+        max: 3, // 3 registration attempts per hour
+      },
+      "/forgot-password": {
+        window: 3600, // 1 hour
+        max: 3, // 3 password reset attempts per hour
+      },
+      "/verify-email": {
+        window: 3600, // 1 hour
+        max: 5, // 5 verification attempts per hour
+      },
+      "/resend-verification": {
+        window: 3600, // 1 hour
+        max: 5, // 5 resend attempts per hour
+      },
+    },
+  },
   // Use Redis for session storage if available
   ...(redisClient && isRedisConnected()
     ? {
@@ -82,21 +110,26 @@ export const auth = betterAuth({
             };
           },
         },
-        // Facebook OAuth
+        // Discord OAuth
         {
-          providerId: "facebook",
-          clientId: process.env.FACEBOOK_CLIENT_ID!,
-          clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
-          authorizationUrl: "https://www.facebook.com/v18.0/dialog/oauth",
-          tokenUrl: "https://graph.facebook.com/v18.0/oauth/access_token",
-          userInfoUrl: "https://graph.facebook.com/v18.0/me?fields=id,name,email,picture",
-          scopes: ["email", "public_profile"],
+          providerId: "discord",
+          clientId: process.env.DISCORD_CLIENT_ID!,
+          clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+          authorizationUrl: "https://discord.com/api/oauth2/authorize",
+          tokenUrl: "https://discord.com/api/oauth2/token",
+          userInfoUrl: "https://discord.com/api/users/@me",
+          scopes: ["identify", "email"],
           mapProfileToUser: (profile) => {
+            // Discord avatar URL format: https://cdn.discordapp.com/avatars/{user_id}/{avatar}.png
+            const avatarUrl = profile.avatar
+              ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`
+              : null;
+            
             return {
               email: profile.email,
-              name: profile.name,
-              image: profile.picture?.data?.url || null,
-              emailVerified: true, // Facebook emails are verified
+              name: profile.username || profile.global_name || null,
+              image: avatarUrl,
+              emailVerified: profile.verified ?? false,
             };
           },
         },

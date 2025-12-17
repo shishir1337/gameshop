@@ -1,4 +1,4 @@
-import { EmailTemplate } from "@/components/email-template";
+import { EmailTemplate } from "@/components/emails/email-template";
 import { resend, DEFAULT_FROM_EMAIL } from "@/lib/resend";
 import { render } from "@react-email/render";
 import { NextRequest, NextResponse } from "next/server";

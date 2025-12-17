@@ -28,7 +28,7 @@ async function fetchCurrentUserInternal(): Promise<{ user: UserProfile } | { err
       accounts: {
         where: {
           providerId: {
-            in: ["google", "facebook"],
+            in: ["google", "discord"],
           },
         },
       },
@@ -50,7 +50,7 @@ async function fetchCurrentUserInternal(): Promise<{ user: UserProfile } | { err
     return { user: userProfile };
   }
 
-  // If user has OAuth accounts (Google/Facebook), their email is verified
+  // If user has OAuth accounts (Google/Discord), their email is verified
   const hasOAuthAccount = fullUser.accounts.length > 0;
   const emailVerified = hasOAuthAccount ? true : fullUser.emailVerified;
 

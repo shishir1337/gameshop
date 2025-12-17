@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Allow external images from Google and Facebook
+  // Allow external images from Google and Discord
   images: {
     remotePatterns: [
       {
@@ -14,11 +14,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "graph.facebook.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.fbcdn.net",
+        hostname: "cdn.discordapp.com",
       },
     ],
   },

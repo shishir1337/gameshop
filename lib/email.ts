@@ -1,8 +1,8 @@
 import { resend, DEFAULT_FROM_EMAIL } from "./resend";
 import { render } from "@react-email/render";
-import { PasswordResetTemplate } from "@/components/password-reset-template";
-import { WelcomeEmailTemplate } from "@/components/welcome-email-template";
-import { EmailVerificationTemplate } from "@/components/email-verification-template";
+import { PasswordResetTemplate } from "@/components/emails/password-reset-template";
+import { WelcomeEmailTemplate } from "@/components/emails/welcome-email-template";
+import { EmailVerificationTemplate } from "@/components/emails/email-verification-template";
 
 /**
  * Send a password reset email

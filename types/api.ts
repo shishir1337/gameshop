@@ -2,7 +2,7 @@
  * API-specific types for request/response handling
  */
 
-import { UserProfile, AdminUser, AdminStats } from "./index";
+import { UserProfile } from "./index";
 
 // ============================================================================
 // Auth API Types
@@ -63,31 +63,6 @@ export interface UpdateProfileResponse {
 export interface UploadAvatarResponse {
   url: string;
   filename: string;
-}
-
-// ============================================================================
-// Admin API Types
-// ============================================================================
-
-export interface AdminUsersQueryParams {
-  search?: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface AdminUsersResponse {
-  users: AdminUser[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasMore: boolean;
-  };
-}
-
-export interface AdminStatsResponse {
-  stats: AdminStats;
 }
 
 // ============================================================================

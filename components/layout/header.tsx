@@ -19,9 +19,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, ShoppingCart, User, LogOut, LogIn, Shield } from "lucide-react";
+import { Menu, User, LogOut, LogIn } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile } from "@/types";
 
@@ -40,18 +40,6 @@ export function Header() {
     // Re-check session when pathname changes (e.g., after login)
     checkSession();
   }, [pathname]);
-
-  // Also check session periodically to catch OAuth profile updates
-  useEffect(() => {
-    if (user) {
-      const interval = setInterval(() => {
-        checkSession();
-      }, 5000); // Check every 5 seconds when user is logged in
-
-      return () => clearInterval(interval);
-    }
-    return undefined;
-  }, [user]);
 
   const checkSession = async () => {
     try {
@@ -87,45 +75,14 @@ export function Header() {
     }
   };
 
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/shop", label: "Shop" },
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
-  ];
-
-  const isActive = (href: string) => pathname === href;
-
-  // Hide header on admin routes
-  if (pathname?.startsWith("/admin")) {
-    return null;
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto max-w-[1320px] flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
-          <ShoppingCart className="h-6 w-6" />
-          <span className="text-xl font-bold">GameShop</span>
+          <span className="text-xl font-bold">Auth App</span>
         </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive(link.href)
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
 
           {/* Desktop Auth Section */}
         <div className="hidden md:flex items-center space-x-4">
@@ -166,27 +123,6 @@ export function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {user.role === "admin" && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin" className="cursor-pointer">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Admin Panel
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/orders" className="cursor-pointer">
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Orders
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
@@ -211,25 +147,11 @@ export function Header() {
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
             <SheetHeader>
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
             <nav className="flex flex-col space-y-4 mt-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`text-base font-medium transition-colors hover:text-primary ${
-                    isActive(link.href)
-                      ? "text-foreground"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
               <div className="pt-4 border-t">
                 <div className="mb-4">
                   <ModeToggle />
@@ -270,32 +192,6 @@ export function Header() {
                         <p className="text-xs text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
-                    {user.role === "admin" && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center px-2 py-1.5 text-sm hover:text-primary"
-                      >
-                        <Shield className="mr-2 h-4 w-4" />
-                        Admin Panel
-                      </Link>
-                    )}
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center px-2 py-1.5 text-sm hover:text-primary"
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                    <Link
-                      href="/dashboard/orders"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center px-2 py-1.5 text-sm hover:text-primary"
-                    >
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      Orders
-                    </Link>
                     <Button
                       variant="ghost"
                       className="w-full justify-start"

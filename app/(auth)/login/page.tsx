@@ -10,7 +10,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { SocialLoginButtons } from "@/components/social-login-buttons";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 
 export default function LoginPage() {
   const router = useRouter();

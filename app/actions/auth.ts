@@ -17,10 +17,6 @@ export async function registerUser(
   data: RegisterRequest
 ): Promise<RegisterResponse> {
   try {
-    // Note: Rate limiting should be handled at middleware level
-    // For Server Actions, we'll validate here but rate limiting
-    // is better handled via middleware or API routes
-
     // Validate input
     const validationResult = registerSchema.safeParse(data);
 

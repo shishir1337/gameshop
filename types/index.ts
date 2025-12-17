@@ -9,7 +9,7 @@ import { User, Account, Session, Verification } from "@prisma/client";
 // Database Types (from Prisma)
 // ============================================================================
 
-export type { User, Account, Session, Verification } from "@prisma/client";
+export type { User, Account, Session, Verification };
 
 export type UserWithRelations = User & {
   accounts?: Account[];
@@ -87,41 +87,6 @@ export interface UpdateProfileData {
 }
 
 // ============================================================================
-// Admin Types
-// ============================================================================
-
-export interface AdminUser {
-  id: string;
-  name: string | null;
-  email: string;
-  emailVerified: boolean;
-  image: string | null;
-  role: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface AdminStats {
-  totalUsers: number;
-  totalProducts: number;
-  totalOrders: number;
-  totalRevenue: number;
-  recentUsers: AdminUser[];
-  recentOrders: AdminOrder[];
-}
-
-export interface AdminOrder {
-  id: string;
-  total: number | string;
-  createdAt: Date;
-  user?: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
-}
-
-// ============================================================================
 // Form Types
 // ============================================================================
 
@@ -158,17 +123,6 @@ export interface AppError {
   message: string;
   statusCode: number;
   code?: string;
-}
-
-// ============================================================================
-// Rate Limiting Types
-// ============================================================================
-
-export interface RateLimitResult {
-  success: boolean;
-  limit: number;
-  remaining: number;
-  reset: number;
 }
 
 // ============================================================================
