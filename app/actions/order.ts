@@ -25,29 +25,32 @@ export async function createOrder(data: unknown) {
     // Validate input
     const validatedData = createOrderSchema.parse(data);
 
-    // Get current session (optional - for logged-in users)
-    let userId: string | undefined;
-    try {
-      const session = await auth.api.getSession({
-        headers: await headers(),
-      });
-      userId = session?.user?.id;
-    } catch {
-      // User not logged in - guest checkout
-      userId = undefined;
+    // REQUIRE USER TO BE LOGGED IN - No guest checkout allowed
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return { 
+        success: false, 
+        error: "You must be logged in to place an order. Please log in and try again." 
+      };
     }
 
-    // If user is logged in, use their email from session if not provided
-    let email = validatedData.email;
-    if (userId && !email) {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true },
-      });
-      if (user) {
-        email = user.email;
-      }
+    const userId = session.user.id;
+
+    // Get user email from session/database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
     }
+
+    // Use email from database (more reliable than validatedData.email)
+    const email = user.email;
 
     // Verify product and variant exist and are active
     const product = await prisma.product.findUnique({
@@ -81,10 +84,22 @@ export async function createOrder(data: unknown) {
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        userId: userId || null,
+        userId: userId, // Always required now - no guest checkout
         email,
         productId: validatedData.productId,
-        userFormData: (validatedData.userFormData || {}) as Record<string, string>,
+        userFormData: validatedData.userFormData 
+          ? Object.fromEntries(
+              Object.entries(validatedData.userFormData).map(([key, value]) => [
+                // Sanitize keys: only alphanumeric and underscore
+                key.replace(/[^a-zA-Z0-9_]/g, "_"),
+                // Sanitize values: remove potential XSS characters
+                String(value)
+                  .replace(/[<>]/g, "") // Remove < and >
+                  .trim()
+                  .slice(0, 500), // Enforce max length
+              ])
+            )
+          : {},
         paymentProvider,
         paymentStatus: "PENDING",
         totalAmount,
@@ -478,15 +493,17 @@ export async function getOrderByNumber(orderNumber: string) {
       return { success: false, error: "Order not found" };
     }
 
-    // If user is logged in, verify they own this order
-    if (session) {
-      if (order.userId !== session.user.id) {
-        return { success: false, error: "Unauthorized" };
-      }
-    } else {
-      // Guest checkout - verify email matches
-      // This is a basic check, you might want to add a token-based verification
-      // For now, we'll allow viewing by order number (less secure but simpler)
+    // REQUIRE USER TO BE LOGGED IN - No guest checkout
+    if (!session?.user?.id) {
+      return { 
+        success: false, 
+        error: "You must be logged in to view orders. Please log in and try again." 
+      };
+    }
+
+    // Verify user owns this order
+    if (order.userId !== session.user.id) {
+      return { success: false, error: "Unauthorized - This order does not belong to you" };
     }
 
     return { success: true, data: order };

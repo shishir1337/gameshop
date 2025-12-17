@@ -15,8 +15,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingCart, CheckCircle2 } from "lucide-react";
+import { ShoppingCart, CheckCircle2, LogIn } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 import type { ProductVariant } from "@prisma/client";
 import type { UserFormField } from "@/lib/validations/product";
 import { createOrder } from "@/app/actions/order";
@@ -42,6 +43,7 @@ export function ProductForm({
   const [isLoading, setIsLoading] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isCheckingUser, setIsCheckingUser] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Check if user is logged in and get their email
   useEffect(() => {
@@ -56,10 +58,16 @@ export function ProductForm({
           if (data.user?.email) {
             setUserEmail(data.user.email);
             setEmail(data.user.email);
+            setIsLoggedIn(true);
+          } else {
+            setIsLoggedIn(false);
           }
+        } else {
+          setIsLoggedIn(false);
         }
       } catch {
         // User not logged in
+        setIsLoggedIn(false);
       } finally {
         setIsCheckingUser(false);
       }
@@ -432,20 +440,46 @@ export function ProductForm({
 
       <Separator />
 
-      {/* Pay Now Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handlePayNow}
-          disabled={!canPlaceOrder || isLoading}
-          size="lg"
-          className="min-w-[200px]"
-        >
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          {isLoading
-            ? "Processing..."
-            : `Pay Now - ৳${selectedVariant?.price || 0}`}
-        </Button>
-      </div>
+      {/* Pay Now Button or Login Prompt */}
+      {!isLoggedIn ? (
+        <div className="space-y-4">
+          <div className="rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 p-6 text-center">
+            <LogIn className="mx-auto h-12 w-12 text-zinc-400 mb-4" />
+            <h3 className="text-lg font-semibold text-black dark:text-zinc-50 mb-2">
+              Login Required
+            </h3>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+              You must be logged in to place an order. Please log in or create an account to continue.
+            </p>
+            <Button asChild size="lg" className="w-full">
+              <Link href="/login">
+                <LogIn className="mr-2 h-4 w-4" />
+                Login to Place Order
+              </Link>
+            </Button>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-3">
+              Don&apos;t have an account?{" "}
+              <Link href="/register" className="text-primary hover:underline">
+                Sign up here
+              </Link>
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex justify-end">
+          <Button
+            onClick={handlePayNow}
+            disabled={!canPlaceOrder || isLoading}
+            size="lg"
+            className="min-w-[200px]"
+          >
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            {isLoading
+              ? "Processing..."
+              : `Pay Now - ৳${selectedVariant?.price || 0}`}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -18,7 +18,20 @@ export const createOrderSchema = z.object({
   variantId: z.string().min(1, "Variant ID is required"),
   email: z.string().email("Invalid email address"),
   userId: z.string().optional(), // Optional for guest checkout
-  userFormData: z.record(z.string(), z.string()).optional(), // User form data (Riot ID, Player ID, etc.)
+  userFormData: z
+    .record(
+      z.string().min(1).max(100), // Key: max 100 chars
+      z.string().min(0).max(500) // Value: max 500 chars, sanitized
+    )
+    .optional()
+    .refine(
+      (data) => {
+        if (!data) return true;
+        // Limit number of fields
+        return Object.keys(data).length <= 20;
+      },
+      { message: "Too many form fields" }
+    ), // User form data (Riot ID, Player ID, etc.)
   paymentProvider: z.string().optional(), // Optional - will use default if not provided
 });
 

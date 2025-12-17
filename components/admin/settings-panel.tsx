@@ -5,11 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 
 export function SettingsPanel() {
-  // Check environment variables (client-side safe checks)
-  const hasDatabase = typeof process.env.NEXT_PUBLIC_DATABASE_URL !== "undefined";
+  // SECURITY: Never check for sensitive environment variables on client-side
+  // These checks are informational only - actual config is server-side
+  // Note: NEXT_PUBLIC_* vars should NEVER contain sensitive data like API keys
   const hasAuth = typeof process.env.NEXT_PUBLIC_BETTER_AUTH_URL !== "undefined";
-  const hasEmail = typeof process.env.NEXT_PUBLIC_RESEND_API_KEY !== "undefined";
-  const hasPayment = typeof process.env.NEXT_PUBLIC_UDDOKTAPAY_API_KEY !== "undefined";
+  
+  // Database, email, and payment configs are server-side only
+  // We can't check them from client, which is correct for security
+  const hasDatabase = true; // Assumed configured if app is running
+  const hasEmail = true; // Assumed configured if app is running
+  const hasPayment = true; // Assumed configured if app is running
 
   const settings = [
     {
