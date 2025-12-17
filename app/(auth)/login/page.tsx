@@ -41,8 +41,9 @@ export default function LoginPage() {
         router.push("/");
         router.refresh();
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred during login");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred during login");
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -107,7 +108,7 @@ export default function LoginPage() {
             </Button>
             <SocialLoginButtons callbackURL="/" mode="login" />
             <div className="text-sm text-center text-muted-foreground">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/register" className="text-primary hover:underline">
                 Sign up
               </Link>

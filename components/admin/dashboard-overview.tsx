@@ -103,7 +103,7 @@ export function DashboardOverview() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Dashboard Overview</h2>
         <p className="text-muted-foreground">
-          Welcome to your admin dashboard. Here's what's happening with your users.
+          Welcome to your admin dashboard. Here&apos;s what&apos;s happening with your users.
         </p>
       </div>
 

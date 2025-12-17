@@ -41,7 +41,7 @@ export function EmailVerificationProvider({ children }: { children: React.ReactN
         setUser(null);
         setShowDialog(false);
       }
-    } catch (error) {
+    } catch {
       // User not logged in
       setUser(null);
       setShowDialog(false);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
   listUsers,
@@ -275,9 +276,11 @@ export function UserManagement() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         {user.image ? (
-                          <img
+                          <Image
                             src={user.image}
                             alt={user.name || user.email}
+                            width={32}
+                            height={32}
                             className="size-8 rounded-full"
                           />
                         ) : (

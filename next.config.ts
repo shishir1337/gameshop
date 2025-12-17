@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
         hostname: "cdn.discordapp.com",
       },
     ],
+    // Allow unoptimized images for user-uploaded avatars
+    unoptimized: false,
   },
   // Security headers
   async headers() {

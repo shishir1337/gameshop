@@ -53,7 +53,7 @@ export function Header() {
       } else {
         setUser(null);
       }
-    } catch (error) {
+    } catch {
       // User not logged in
       setUser(null);
     } finally {

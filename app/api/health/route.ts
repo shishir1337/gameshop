@@ -20,7 +20,7 @@ export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;
     health.services.database = "connected";
-  } catch (error) {
+  } catch {
     health.services.database = "disconnected";
     health.status = "unhealthy";
   }
@@ -35,7 +35,7 @@ export async function GET() {
       } else {
         health.services.redis = "disconnected";
       }
-    } catch (error) {
+    } catch {
       health.services.redis = "disconnected";
       // Redis failure doesn't make the app unhealthy, just degraded
     }

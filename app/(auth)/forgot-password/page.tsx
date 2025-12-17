@@ -36,8 +36,9 @@ export default function ForgotPasswordPage() {
         setSuccess(true);
         toast.success("If an account with that email exists, a password reset link has been sent.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred");
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -49,7 +50,7 @@ export default function ForgotPasswordPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Forgot Password</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we&apos;ll send you a link to reset your password
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>

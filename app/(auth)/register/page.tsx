@@ -42,8 +42,9 @@ export default function RegisterPage() {
         router.push(`/verify-email?email=${encodeURIComponent(email)}`);
         router.refresh();
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred during registration");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred during registration");
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }

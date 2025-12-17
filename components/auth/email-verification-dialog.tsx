@@ -62,8 +62,9 @@ export function EmailVerificationDialog({
         onVerified();
         router.refresh();
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred");
+      toast.error(error.message);
       setOtp("");
     } finally {
       setLoading(false);
@@ -89,8 +90,9 @@ export function EmailVerificationDialog({
         toast.success("Verification code sent! Check your email.");
         setOtp(""); // Clear current OTP
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred");
+      toast.error(error.message);
     } finally {
       setResending(false);
     }

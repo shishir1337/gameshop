@@ -34,8 +34,9 @@ export default function ResendVerificationPage() {
         toast.success("If an account with that email exists and is not verified, a verification email has been sent.");
         setEmail(""); // Clear email after successful send
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred");
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -47,7 +48,7 @@ export default function ResendVerificationPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Resend Verification Email</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a new verification link
+            Enter your email address and we&apos;ll send you a new verification link
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -89,7 +90,7 @@ export default function ResendVerificationPage() {
                 </Link>
               </div>
               <div>
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link href="/register" className="text-primary hover:underline">
                   Sign up
                 </Link>

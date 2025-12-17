@@ -71,8 +71,9 @@ function VerifyEmailForm() {
           router.push("/login");
         }, 1500);
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred");
+      toast.error(error.message);
       setOtp(""); // Clear OTP on error
     } finally {
       setLoading(false);
@@ -103,8 +104,9 @@ function VerifyEmailForm() {
         toast.success("Verification code sent! Check your email.");
         setOtp(""); // Clear current OTP
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred");
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }

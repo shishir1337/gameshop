@@ -36,7 +36,7 @@ export function WelcomeEmailTemplate({
         </a>
       </p>
       <p style={{ marginTop: "20px", fontSize: "12px", color: "#999" }}>
-        If you didn't create this account, please contact our support team.
+        If you didn&apos;t create this account, please contact our support team.
       </p>
     </div>
   );

@@ -30,8 +30,9 @@ export function SocialLoginButtons({ callbackURL = "/" }: SocialLoginButtonsProp
         // Redirect will happen automatically via Better Auth
         toast.success(`Signing in with ${providerId}...`);
       }
-    } catch (error: any) {
-      toast.error(error.message || `Failed to sign in with ${providerId}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : `Failed to sign in with ${providerId}`;
+      toast.error(errorMessage);
       setLoading(null);
     }
   };

@@ -13,9 +13,10 @@ export async function POST() {
     });
 
     return NextResponse.json({ message: "Logged out successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Logout failed";
     return NextResponse.json(
-      { error: error.message || "Logout failed" },
+      { error: errorMessage },
       { status: 400 }
     );
   }

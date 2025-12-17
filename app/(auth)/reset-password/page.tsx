@@ -69,8 +69,9 @@ function ResetPasswordForm() {
           router.push("/login");
         }, 2000);
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An error occurred");
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }

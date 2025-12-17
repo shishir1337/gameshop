@@ -81,7 +81,19 @@ export async function listUsers(
       throw new Error("Failed to fetch users");
     }
 
-    const formattedUsers: AdminUser[] = result.users.map((user: any) => ({
+    const formattedUsers: AdminUser[] = result.users.map((user: {
+      id: string;
+      name?: string | null;
+      email: string;
+      image?: string | null;
+      emailVerified?: boolean;
+      role?: string;
+      banned?: boolean;
+      banReason?: string | null;
+      banExpires?: Date | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }) => ({
       id: user.id,
       name: user.name ?? null,
       email: user.email,

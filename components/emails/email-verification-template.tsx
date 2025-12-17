@@ -63,7 +63,7 @@ export function EmailVerificationTemplate({
         </a>
       </p>
       <p style={{ marginTop: "20px", fontSize: "12px", color: "#999" }}>
-        This code will expire in 15 minutes. If you didn't create this account, please ignore this email.
+        This code will expire in 15 minutes. If you didn&apos;t create this account, please ignore this email.
       </p>
     </div>
   );

@@ -30,7 +30,7 @@ export function PasswordResetTemplate({
       <p>Or copy and paste this URL into your browser:</p>
       <p style={{ wordBreak: "break-all", color: "#666" }}>{resetLink}</p>
       <p style={{ marginTop: "20px", fontSize: "12px", color: "#999" }}>
-        This link will expire in 1 hour. If you didn't request this, please ignore this email.
+        This link will expire in 1 hour. If you didn&apos;t request this, please ignore this email.
       </p>
     </div>
   );
