@@ -17,12 +17,7 @@ import {
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { Loader2, Mail, AlertCircle } from "lucide-react";
-
-interface EmailVerificationDialogProps {
-  email: string;
-  open: boolean;
-  onVerified: () => void;
-}
+import type { EmailVerificationDialogProps } from "@/types/components";
 
 export function EmailVerificationDialog({
   email,

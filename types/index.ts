@@ -1,26 +1,120 @@
 /**
  * Centralized TypeScript type definitions
- * All types should be exported from here for better maintainability
+ * 
+ * This is the main entry point for all types in the application.
+ * Types are organized into separate files for better maintainability:
+ * 
+ * - types/auth.ts - Better Auth inferred types and auth-related types
+ * - types/admin.ts - Admin dashboard and user management types
+ * - types/api.ts - API request/response types
+ * - types/components.ts - Component prop types
+ * - types/database.ts - Database and Prisma types
+ * - types/forms.ts - Form data types
+ * - types/index.ts - Main export file (this file)
  */
 
-import { User, Account, Session, Verification } from "@prisma/client";
-
 // ============================================================================
-// Database Types (from Prisma)
+// Re-export all types from organized modules
 // ============================================================================
 
+// Auth types (Better Auth inferred + legacy)
+export type {
+  AuthSession,
+  AuthUser,
+  AuthSessionData,
+  ClientSession,
+  ClientUser,
+  ClientSessionData,
+  UserProfile,
+  SessionUser,
+  LegacyAuthSession,
+  AuthResponse,
+  MeResponse,
+} from "./auth";
+
+// Admin types
+export type {
+  AdminUser,
+  ListUsersParams,
+  ListUsersResponse,
+  UserOperationResponse,
+  BanUserParams,
+  UpdateUserRoleParams,
+  ToggleEmailVerificationParams,
+  DashboardStats,
+} from "./admin";
+
+// API types
+export type {
+  RegisterRequest,
+  RegisterResponse,
+  LoginRequest,
+  LoginResponse,
+  UpdateProfileRequest,
+  UpdateProfileResponse,
+  UploadAvatarResponse,
+  ErrorResponse,
+  ValidationErrorResponse,
+} from "./api";
+
+// Component types
+export type {
+  EmailTemplateProps,
+  EmailVerificationTemplateProps,
+  PasswordResetTemplateProps,
+  WelcomeEmailTemplateProps,
+  EmailVerificationDialogProps,
+  SocialLoginButtonsProps,
+  PageProps,
+  LayoutProps,
+  PasswordInputProps,
+} from "./components";
+
+// Database types
+export type {
+  UserWithAccounts,
+  UserWithSessions,
+  UserWithVerifications,
+  UserFull,
+  AccountWithUser,
+  SessionWithUser,
+  VerificationWithUser,
+} from "./database";
+
+// Form types
+export type {
+  RegisterFormData,
+  LoginFormData,
+  ForgotPasswordFormData,
+  ResetPasswordFormData,
+  VerifyEmailFormData,
+  ResendVerificationFormData,
+  UpdateProfileFormData,
+} from "./forms";
+
+// ============================================================================
+// Common Types
+// ============================================================================
+
+import type { User, Account, Session, Verification } from "@prisma/client";
+
+/**
+ * Re-export Prisma types for convenience
+ */
 export type { User, Account, Session, Verification };
 
+/**
+ * User with all relations
+ */
 export type UserWithRelations = User & {
   accounts?: Account[];
   sessions?: Session[];
   verifications?: Verification[];
 };
 
-// ============================================================================
-// API Response Types
-// ============================================================================
-
+/**
+ * Generic API response wrapper
+ */
 export interface ApiResponse<T = unknown> {
   success?: boolean;
   data?: T;
@@ -28,6 +122,9 @@ export interface ApiResponse<T = unknown> {
   message?: string;
 }
 
+/**
+ * Paginated API response
+ */
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
@@ -39,103 +136,20 @@ export interface PaginatedResponse<T> {
   };
 }
 
-// ============================================================================
-// Auth Types
-// ============================================================================
-
-export interface SessionUser {
-  id: string;
-  email: string;
-  name: string | null;
-  image: string | null;
-  emailVerified: boolean;
-  role: string;
-}
-
-export interface AuthSession {
-  user: SessionUser;
-  session: {
-    id: string;
-    expiresAt: Date;
-    token: string;
-  };
-}
-
-export interface AuthResponse {
-  user: SessionUser;
-  session?: AuthSession["session"];
-}
-
-// ============================================================================
-// User Types
-// ============================================================================
-
-export interface UserProfile {
-  id: string;
-  name: string | null;
-  email: string;
-  image: string | null;
-  emailVerified: boolean;
-  role: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface UpdateProfileData {
-  name?: string;
-  image?: string;
-}
-
-// ============================================================================
-// Form Types
-// ============================================================================
-
-export interface RegisterFormData {
-  email: string;
-  password: string;
-  name?: string;
-}
-
-export interface LoginFormData {
-  email: string;
-  password: string;
-}
-
-export interface ForgotPasswordFormData {
-  email: string;
-}
-
-export interface ResetPasswordFormData {
-  token: string;
-  password: string;
-}
-
-export interface VerifyEmailFormData {
-  otp: string;
-  email: string;
-}
-
-// ============================================================================
-// Error Types
-// ============================================================================
-
+/**
+ * Application error type
+ */
 export interface AppError {
   message: string;
   statusCode: number;
   code?: string;
 }
 
-// ============================================================================
-// Component Props Types
-// ============================================================================
-
-export interface PageProps {
-  params?: Record<string, string>;
-  searchParams?: Record<string, string | string[] | undefined>;
-}
-
-export interface LayoutProps {
-  children: React.ReactNode;
-  params?: Record<string, string>;
+/**
+ * Profile update data
+ */
+export interface UpdateProfileData {
+  name?: string;
+  image?: string;
 }
 

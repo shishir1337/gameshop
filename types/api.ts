@@ -2,7 +2,7 @@
  * API-specific types for request/response handling
  */
 
-import { UserProfile } from "./index";
+import type { AuthUser, AuthSessionData } from "./auth";
 
 // ============================================================================
 // Auth API Types
@@ -15,12 +15,8 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-  user: UserProfile;
-  session?: {
-    id: string;
-    expiresAt: Date;
-    token: string;
-  } | null;
+  user: AuthUser;
+  session?: AuthSessionData | null;
 }
 
 export interface LoginRequest {
@@ -29,21 +25,8 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  user: UserProfile;
-  session: {
-    id: string;
-    expiresAt: Date;
-    token: string;
-  };
-}
-
-export interface MeResponse {
-  user: UserProfile;
-  session?: {
-    id: string;
-    expiresAt: Date;
-    token: string;
-  };
+  user: AuthUser;
+  session: AuthSessionData;
 }
 
 // ============================================================================
@@ -57,7 +40,7 @@ export interface UpdateProfileRequest {
 
 export interface UpdateProfileResponse {
   message: string;
-  user: UserProfile;
+  user: AuthUser;
 }
 
 export interface UploadAvatarResponse {

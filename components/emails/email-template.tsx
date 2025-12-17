@@ -1,7 +1,4 @@
-
-interface EmailTemplateProps {
-  firstName: string;
-}
+import type { EmailTemplateProps } from "@/types/components";
 
 export function EmailTemplate({ firstName }: EmailTemplateProps) {
   return (

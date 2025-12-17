@@ -6,11 +6,7 @@ import { Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-
-interface SocialLoginButtonsProps {
-  callbackURL?: string;
-  mode?: "login" | "register";
-}
+import type { SocialLoginButtonsProps } from "@/types/components";
 
 export function SocialLoginButtons({ callbackURL = "/" }: SocialLoginButtonsProps) {
   const [loading, setLoading] = useState<string | null>(null);

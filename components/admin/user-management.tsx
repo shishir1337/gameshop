@@ -10,9 +10,8 @@ import {
   toggleUserEmailVerification,
   banUser,
   unbanUser,
-  type AdminUser,
-  type ListUsersResponse,
 } from "@/app/actions/admin";
+import type { AdminUser, ListUsersResponse } from "@/types/admin";
 import {
   Table,
   TableBody,

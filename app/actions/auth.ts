@@ -8,7 +8,7 @@ import { registerSchema, verifyEmailSchema, resendVerificationSchema } from "@/l
 import { generateOTPWithExpiry } from "@/lib/utils/otp";
 import { sanitizeError } from "@/lib/utils/errors";
 import type { RegisterRequest, RegisterResponse } from "@/types/api";
-import type { UserProfile } from "@/types";
+import type { AuthUser } from "@/types/auth";
 
 /**
  * Server Action: Register a new user
@@ -72,20 +72,10 @@ export async function registerUser(
       }
     });
 
-    const userProfile: UserProfile = {
-      id: result.user.id,
-      name: result.user.name,
-      email: result.user.email,
-      image: result.user.image ?? null,
-      emailVerified: result.user.emailVerified,
-      role: (result.user as { role?: string }).role || "user",
-      createdAt: result.user.createdAt,
-      updatedAt: result.user.updatedAt,
-    };
-
+    // Return the user from Better Auth result
     // Better Auth signUpEmail doesn't return a session - user needs to login
     return {
-      user: userProfile,
+      user: result.user as AuthUser,
       session: undefined,
     };
   } catch (error: unknown) {

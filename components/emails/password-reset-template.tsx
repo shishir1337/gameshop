@@ -1,7 +1,4 @@
-interface PasswordResetTemplateProps {
-  resetLink: string;
-  firstName?: string;
-}
+import type { PasswordResetTemplateProps } from "@/types/components";
 
 export function PasswordResetTemplate({
   resetLink,

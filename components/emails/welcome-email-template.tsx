@@ -1,8 +1,4 @@
-
-interface WelcomeEmailTemplateProps {
-  firstName?: string;
-  email: string;
-}
+import type { WelcomeEmailTemplateProps } from "@/types/components";
 
 export function WelcomeEmailTemplate({
   firstName,

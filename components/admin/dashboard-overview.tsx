@@ -3,16 +3,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCheck, UserX, Shield, TrendingUp, Activity } from "lucide-react";
-import { listUsers, type AdminUser } from "@/app/actions/admin";
+import { listUsers } from "@/app/actions/admin";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface DashboardStats {
-  totalUsers: number;
-  verifiedUsers: number;
-  unverifiedUsers: number;
-  adminUsers: number;
-  bannedUsers: number;
-}
+import type { AdminUser, DashboardStats } from "@/types/admin";
 
 export function DashboardOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);

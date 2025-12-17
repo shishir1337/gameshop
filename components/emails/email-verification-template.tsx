@@ -1,8 +1,5 @@
 
-interface EmailVerificationTemplateProps {
-  firstName?: string;
-  otpCode: string;
-}
+import type { EmailVerificationTemplateProps } from "@/types/components";
 
 export function EmailVerificationTemplate({
   firstName,

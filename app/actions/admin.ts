@@ -1,41 +1,14 @@
 "use server";
 
- import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { sanitizeError } from "@/lib/utils/errors";
-
-export interface AdminUser {
-  id: string;
-  name: string | null;
-  email: string;
-  image: string | null;
-  emailVerified: boolean;
-  role: string;
-  banned: boolean;
-  banReason: string | null;
-  banExpires: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ListUsersParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  role?: string;
-  emailVerified?: boolean;
-}
-
-export interface ListUsersResponse {
-  users: AdminUser[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasMore: boolean;
-  };
-}
+import type {
+  AdminUser,
+  ListUsersParams,
+  ListUsersResponse,
+  UserOperationResponse,
+} from "@/types/admin";
 
 /**
  * List all users with pagination and filters
@@ -81,31 +54,25 @@ export async function listUsers(
       throw new Error("Failed to fetch users");
     }
 
-    const formattedUsers: AdminUser[] = result.users.map((user: {
-      id: string;
-      name?: string | null;
-      email: string;
-      image?: string | null;
-      emailVerified?: boolean;
-      role?: string;
-      banned?: boolean;
-      banReason?: string | null;
-      banExpires?: Date | null;
-      createdAt: Date;
-      updatedAt: Date;
-    }) => ({
-      id: user.id,
-      name: user.name ?? null,
-      email: user.email,
-      image: user.image ?? null,
-      emailVerified: user.emailVerified ?? false,
-      role: user.role || "user",
-      banned: user.banned || false,
-      banReason: user.banReason ?? null,
-      banExpires: user.banExpires ?? null,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    }));
+    // Map Better Auth users to AdminUser format
+    const formattedUsers: AdminUser[] = result.users.map((user) => {
+      // Handle banned field which can be boolean | null
+      const banned = user.banned === null ? false : (user.banned ?? false);
+      
+      return {
+        id: user.id,
+        name: user.name ?? null,
+        email: user.email,
+        image: user.image ?? null,
+        emailVerified: user.emailVerified ?? false,
+        role: user.role || "user",
+        banned,
+        banReason: user.banReason ?? null,
+        banExpires: user.banExpires ?? null,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+    });
 
     const total = result.total || 0;
     const totalPages = Math.ceil(total / limit);
@@ -132,7 +99,7 @@ export async function listUsers(
 export async function updateUserRole(
   userId: string,
   role: "user" | "admin"
-): Promise<{ success: boolean; message: string }> {
+): Promise<UserOperationResponse> {
   try {
     await auth.api.setRole({
       body: {
@@ -157,7 +124,7 @@ export async function updateUserRole(
  */
 export async function deleteUser(
   userId: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<UserOperationResponse> {
   try {
     await auth.api.removeUser({
       body: {
@@ -198,6 +165,9 @@ export async function getUserById(
     }
 
     const user = result.users[0];
+    // Handle banned field which can be boolean | null
+    const banned = user.banned === null ? false : (user.banned ?? false);
+    
     return {
       id: user.id,
       name: user.name ?? null,
@@ -205,7 +175,7 @@ export async function getUserById(
       image: user.image ?? null,
       emailVerified: user.emailVerified ?? false,
       role: user.role || "user",
-      banned: user.banned || false,
+      banned,
       banReason: user.banReason ?? null,
       banExpires: user.banExpires ?? null,
       createdAt: user.createdAt,
@@ -223,7 +193,7 @@ export async function getUserById(
 export async function toggleUserEmailVerification(
   userId: string,
   emailVerified: boolean
-): Promise<{ success: boolean; message: string }> {
+): Promise<UserOperationResponse> {
   try {
     await auth.api.adminUpdateUser({
       body: {
@@ -252,7 +222,7 @@ export async function banUser(
   userId: string,
   banReason?: string,
   banExpiresIn?: number
-): Promise<{ success: boolean; message: string }> {
+): Promise<UserOperationResponse> {
   try {
     await auth.api.banUser({
       body: {
@@ -278,7 +248,7 @@ export async function banUser(
  */
 export async function unbanUser(
   userId: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<UserOperationResponse> {
   try {
     await auth.api.unbanUser({
       body: {
