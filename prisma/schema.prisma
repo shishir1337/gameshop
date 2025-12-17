@@ -12,21 +12,22 @@ datasource db {
 // Better Auth required tables
 
 model User {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   name          String?
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  email         String    @unique
+  emailVerified Boolean   @default(false)
   image         String?
-  role          String   @default("user") // "user" or "admin"
-  banned        Boolean  @default(false)
+  role          String    @default("user") // "user" or "admin"
+  banned        Boolean   @default(false)
   banReason     String?
   banExpires    DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   accounts      Account[]
   sessions      Session[]
   verifications Verification[]
+  orders        Order[]
 
   @@map("user")
 }
@@ -95,4 +96,130 @@ model RateLimit {
   lastRequest BigInt?
 
   @@map("rateLimit")
+}
+
+// ============================================================================
+// E-commerce Models
+// ============================================================================
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@index([slug])
+  @@map("category")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  image       String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  isActive    Boolean  @default(true)
+
+  // User form configuration (stored as JSON)
+  // Example: [{"type": "text", "label": "Riot ID", "name": "riotId", "placeholder": "Please Input your Riot id", "required": true}]
+  userFormFields Json? // Will store array of form field configs
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  variants ProductVariant[]
+  orders   Order[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@map("product")
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String // e.g., "475 VP", "60 UC"
+  price     Int // Price in BDT (stored as integer, e.g., 525 = 525 BDT)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([productId])
+  @@map("productVariant")
+}
+
+model Order {
+  id          String @id @default(cuid())
+  orderNumber String @unique
+
+  // User info (nullable for guest checkout)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email  String
+
+  // Product info
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  // User form data (stored as JSON)
+  // Example: {"riotId": "Player#1234"} or {"playerId": "123456", "server": "Asia"}
+  userFormData Json // Riot ID, Player ID, Server, etc.
+
+  // Payment info
+  paymentProvider String // e.g., "bkash", "nagad", "stripe"
+  paymentStatus   PaymentStatus @default(PENDING)
+  totalAmount     Int // in BDT
+
+  status OrderStatus @default(PENDING)
+
+  // Admin notes (internal use only)
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrderItem[]
+
+  @@index([userId])
+  @@index([email])
+  @@index([orderNumber])
+  @@map("order")
+}
+
+model OrderItem {
+  id        String         @id @default(cuid())
+  orderId   String
+  order     Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int            @default(1)
+  price     Int // Price at time of order
+  createdAt DateTime       @default(now())
+
+  @@index([orderId])
+  @@map("orderItem")
 }

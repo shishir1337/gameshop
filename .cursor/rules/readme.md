@@ -95,17 +95,205 @@ Payment provider selection
 
 Make sure to do the api endpoints accordingly , then admin dashboard for the admin req and frontend part
 
-Design direction:
-
-Dark gaming aesthetic with electric cyan/teal accents
-Glassmorphism cards
-Smooth hover animations
-Bold typography (Orbitron for headings, Inter for body)
 
 
 
 
 
+i already did these :
+Reviewing key files to understand the project structure and features.
+
+
+[6 tools called]
+
+
+Checking admin features and the database schema to understand the full scope:
+
+
+[5 tools called]
+
+
+Checking admin pages and user actions to see what features are implemented:
+
+
+[5 tools called]
+
+
+Checking authentication features and email functionality:
+
+
+[4 tools called]
+
+
+## Project overview: GameShop
+
+A Next.js e-commerce authentication and admin system. Summary:
+
+---
+
+## Project status
+
+**Project name:** GameShop  
+**Version:** 0.1.0  
+**Tech stack:** Next.js 16, TypeScript, Better Auth, PostgreSQL, Prisma, Redis (optional), shadcn/ui, Tailwind CSS
+
+---
+
+## Implemented features
+
+### 1. Authentication system
+- Email/Password authentication — registration and login
+- OAuth — Google and Discord
+- Email verification — OTP-based with 15-minute expiry
+- Password reset — forgot password and reset flow
+- Session management — Redis-backed (optional), database fallback
+- Rate limiting — per-route limits
+- Role-based access — User and Admin roles
+
+### 2. User management
+- User profiles — name, email, avatar
+- Avatar upload — ImageKit integration
+- Email verification status
+- User banning — reason and expiry
+
+### 3. Admin dashboard
+- Dashboard overview — stats:
+  - Total users
+  - Verified/Unverified users
+  - Admin users
+  - Banned users
+- User management page:
+  - User list with pagination
+  - Search and filters
+  - Update user roles
+  - Ban/Unban users
+  - Toggle email verification
+- Placeholder pages:
+  - Products (not implemented)
+  - Analytics (not implemented)
+  - Settings (not implemented)
+
+### 4. UI/UX
+- Dark/Light theme (next-themes)
+- Responsive design
+- shadcn/ui components
+- Email templates — verification, password reset, welcome
+- Toast notifications (Sonner)
+- Loading states and skeletons
+
+---
+
+## Project structure
+
+```
+gameshop/
+├── app/
+│   ├── (auth)/          # Auth pages (login, register, verify, etc.)
+│   ├── admin/           # Admin dashboard pages
+│   ├── actions/         # Server actions (auth, admin, user)
+│   └── api/             # API routes
+├── components/
+│   ├── admin/           # Admin dashboard components
+│   ├── auth/            # Auth-related components
+│   ├── layout/          # Header, footer, navigation
+│   ├── theme/           # Theme provider and toggle
+│   └── ui/              # shadcn/ui components
+├── lib/
+│   ├── auth.ts          # Better Auth configuration
+│   ├── email.ts         # Email utilities (Resend)
+│   ├── prisma.ts        # Prisma client
+│   ├── redis.ts         # Redis client
+│   └── validations/     # Zod schemas
+└── prisma/
+    └── schema.prisma    # Database schema
+```
+
+---
+
+## Database schema
+
+### Core models
+- User — id, email, name, image, role, banned, banReason, banExpires
+- Account — OAuth account linking
+- Session — user sessions with IP/userAgent tracking
+- Verification — email verification OTPs
+- RateLimit — rate limiting storage
+
+### E-commerce models
+- None found — migration file exists but is empty
+
+---
+
+## Authentication routes
+
+- `/login` — Sign in
+- `/register` — Sign up
+- `/forgot-password` — Request password reset
+- `/reset-password` — Reset password
+- `/verify-email` — Verify email with OTP
+- `/resend-verification` — Resend verification code
+
+---
+
+## Admin routes
+
+- `/admin` — Dashboard overview
+- `/admin/users` — User management
+- `/admin/products` — Placeholder (coming soon)
+- `/admin/analytics` — Placeholder (coming soon)
+- `/admin/settings` — Placeholder (coming soon)
+
+---
+
+## Security features
+
+- Rate limiting per route
+- Session security (Redis-backed)
+- Email verification
+- Password reset flow
+- OAuth integration
+- Role-based access control
+- User banning system
+
+---
+
+## Technologies & integrations
+
+- Better Auth — authentication
+- Prisma — ORM
+- PostgreSQL — database
+- Redis — optional session storage
+- Resend — email sending
+- ImageKit — image hosting (avatars)
+- shadcn/ui — component library
+- React Hook Form + Zod — form validation
+
+---
+
+## What’s missing / next steps
+
+1. E-commerce features:
+   - Product management
+   - Shopping cart
+   - Order management
+   - Categories
+   - Inventory
+
+2. Admin features:
+   - Product CRUD
+   - Analytics dashboard
+   - Settings page
+
+3. User-facing features:
+   - Product browsing
+   - Shopping experience
+   - Order history
+
+---
+
+## Current status
+
+The project has a solid authentication and admin foundation. The admin dashboard includes user management, and authentication flows are implemented. The e-commerce side (products, orders, cart) is not implemented yet.
 
 
 

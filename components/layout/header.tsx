@@ -19,7 +19,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, User, LogOut, LogIn, Shield } from "lucide-react";
+import { Menu, User, LogOut, LogIn, Shield, ShoppingBag } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -123,6 +123,12 @@ export function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link href="/orders">
+                    <ShoppingBag className="mr-2 h-4 w-4" />
+                    My Orders
+                  </Link>
+                </DropdownMenuItem>
                 {user.role === "admin" && (
                   <>
                     <DropdownMenuItem asChild className="cursor-pointer">

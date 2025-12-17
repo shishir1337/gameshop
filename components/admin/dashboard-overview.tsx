@@ -2,24 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserCheck, UserX, Shield, TrendingUp, Activity } from "lucide-react";
+import { Users, TrendingUp, ShoppingCart, DollarSign, Activity } from "lucide-react";
 import { listUsers } from "@/app/actions/admin";
+import { getAnalytics } from "@/app/actions/analytics";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AdminUser, DashboardStats } from "@/types/admin";
+import Link from "next/link";
 
 export function DashboardOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [orderStats, setOrderStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [allUsers, verifiedUsers, unverifiedUsers, adminUsers, bannedUsers] = await Promise.all([
+        const [allUsers, verifiedUsers, unverifiedUsers, adminUsers, bannedUsers, analytics] = await Promise.all([
           listUsers({ limit: 1000 }),
           listUsers({ limit: 1000, emailVerified: true }),
           listUsers({ limit: 1000, emailVerified: false }),
           listUsers({ limit: 1000, role: "admin" }),
           listUsers({ limit: 1000 }),
+          getAnalytics(),
         ]);
 
         const bannedCount = bannedUsers.users.filter((u: AdminUser) => u.banned).length;
@@ -31,6 +35,10 @@ export function DashboardOverview() {
           adminUsers: adminUsers.pagination.total,
           bannedUsers: bannedCount,
         });
+
+        if (analytics.success && analytics.data) {
+          setOrderStats(analytics.data);
+        }
       } catch (error) {
         console.error("Failed to fetch stats:", error);
       } finally {
@@ -62,32 +70,36 @@ export function DashboardOverview() {
 
   const statCards = [
     {
+      title: "Total Revenue",
+      value: `৳${orderStats?.revenue.total.toLocaleString() || 0}`,
+      description: "All time revenue",
+      icon: DollarSign,
+      trend: orderStats?.revenue.growth ? `${orderStats.revenue.growth >= 0 ? "+" : ""}${orderStats.revenue.growth}%` : null,
+      link: "/admin/analytics",
+    },
+    {
+      title: "Total Orders",
+      value: orderStats?.orders.total || 0,
+      description: `${orderStats?.orders.paid || 0} paid orders`,
+      icon: ShoppingCart,
+      trend: null,
+      link: "/admin/orders",
+    },
+    {
       title: "Total Users",
       value: stats?.totalUsers || 0,
       description: "All registered users",
       icon: Users,
-      trend: "+12.5%",
+      trend: null,
+      link: "/admin/users",
     },
     {
-      title: "Verified Users",
-      value: stats?.verifiedUsers || 0,
-      description: "Email verified",
-      icon: UserCheck,
-      trend: "+8.2%",
-    },
-    {
-      title: "Admin Users",
-      value: stats?.adminUsers || 0,
-      description: "Administrators",
-      icon: Shield,
-      trend: "0%",
-    },
-    {
-      title: "Banned Users",
-      value: stats?.bannedUsers || 0,
-      description: "Currently banned",
-      icon: UserX,
-      trend: "-2.1%",
+      title: "Pending Orders",
+      value: orderStats?.orders.pending || 0,
+      description: "Awaiting processing",
+      icon: ShoppingCart,
+      trend: null,
+      link: "/admin/orders?status=PENDING",
     },
   ];
 
@@ -103,8 +115,9 @@ export function DashboardOverview() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => {
           const Icon = stat.icon;
-          return (
-            <Card key={stat.title}>
+          
+          const cardContent = (
+            <>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
@@ -116,11 +129,31 @@ export function DashboardOverview() {
                 <p className="text-xs text-muted-foreground">
                   {stat.description}
                 </p>
-                <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>{stat.trend} from last month</span>
-                </div>
+                {stat.trend !== null && (
+                  <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                    {stat.trend && stat.trend.startsWith("-") ? (
+                      <TrendingUp className="h-3 w-3 text-red-500 rotate-180" />
+                    ) : stat.trend && stat.trend.startsWith("+") ? (
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <TrendingUp className="h-3 w-3" />
+                    )}
+                    {stat.trend && <span>{stat.trend} from last month</span>}
+                  </div>
+                )}
               </CardContent>
+            </>
+          );
+          
+          return (
+            <Card key={stat.title} className={stat.link ? "hover:shadow-md transition-shadow cursor-pointer" : ""}>
+              {stat.link ? (
+                <Link href={stat.link} className="block">
+                  {cardContent}
+                </Link>
+              ) : (
+                cardContent
+              )}
             </Card>
           );
         })}

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Allow external images from Google and Discord
+  // Allow external images from Google, Discord, and ImageKit
   images: {
     remotePatterns: [
       {
@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "cdn.discordapp.com",
+      },
+      {
+        protocol: "https",
+        hostname: "ik.imagekit.io",
       },
     ],
     // Allow unoptimized images for user-uploaded avatars

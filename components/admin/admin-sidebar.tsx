@@ -9,7 +9,9 @@ import {
   Shield,
   BarChart3,
   Package,
+  FolderTree,
   LogOut,
+  ShoppingCart,
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,9 +39,19 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
+    title: "Orders",
+    url: "/admin/orders",
+    icon: ShoppingCart,
+  },
+  {
     title: "Users",
     url: "/admin/users",
     icon: Users,
+  },
+  {
+    title: "Categories",
+    url: "/admin/categories",
+    icon: FolderTree,
   },
   {
     title: "Products",
