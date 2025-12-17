@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { AnalyticsDashboard } from "@/components/admin/analytics-dashboard";
+import { AnalyticsDashboardSkeleton } from "@/components/admin/analytics-dashboard-skeleton";
 
 export default function AdminAnalyticsPage() {
   return (
@@ -9,7 +11,9 @@ export default function AdminAnalyticsPage() {
           View system analytics and reports
         </p>
       </div>
-      <AnalyticsDashboard />
+      <Suspense fallback={<AnalyticsDashboardSkeleton />}>
+        <AnalyticsDashboard />
+      </Suspense>
     </div>
   );
 }

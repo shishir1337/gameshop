@@ -266,3 +266,49 @@ export async function unbanUser(
     throw new Error(message);
   }
 }
+
+/**
+ * Get dashboard statistics (optimized - single query)
+ */
+export async function getDashboardStats() {
+  try {
+    // Fetch all users once and calculate stats client-side
+    const result = await auth.api.listUsers({
+      query: {
+        limit: 1000, // Adjust as needed
+        offset: 0,
+      },
+      headers: await headers(),
+    });
+
+    if (!result || !result.users) {
+      throw new Error("Failed to fetch users");
+    }
+
+    const users = result.users.map((user) => ({
+      id: user.id,
+      emailVerified: user.emailVerified ?? false,
+      role: user.role || "user",
+      banned: user.banned === null ? false : (user.banned ?? false),
+    }));
+
+    const stats = {
+      totalUsers: result.total || 0,
+      verifiedUsers: users.filter((u) => u.emailVerified).length,
+      unverifiedUsers: users.filter((u) => !u.emailVerified).length,
+      adminUsers: users.filter((u) => u.role === "admin").length,
+      bannedUsers: users.filter((u) => u.banned).length,
+    };
+
+    return {
+      success: true,
+      data: stats,
+    };
+  } catch (error: unknown) {
+    const { message } = sanitizeError(error);
+    return {
+      success: false,
+      error: message,
+    };
+  }
+}

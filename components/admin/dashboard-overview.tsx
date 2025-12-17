@@ -2,69 +2,66 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TrendingUp, ShoppingCart, DollarSign, Activity } from "lucide-react";
-import { listUsers } from "@/app/actions/admin";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Users, TrendingUp, ShoppingCart, DollarSign, Activity, RefreshCw, UserPlus, Settings, BarChart3, AlertCircle } from "lucide-react";
+import { getDashboardStats } from "@/app/actions/admin";
 import { getAnalytics } from "@/app/actions/analytics";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { AdminUser, DashboardStats } from "@/types/admin";
+import type { DashboardStats, AnalyticsData } from "@/types/admin";
 import Link from "next/link";
 
 export function DashboardOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [orderStats, setOrderStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [orderStats, setOrderStats] = useState<AnalyticsData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    setIsRefreshing(true);
+    setError(null);
+    
+    try {
+      const [statsResult, analyticsResult] = await Promise.all([
+        getDashboardStats(),
+        getAnalytics(),
+      ]);
+
+      if (statsResult.success && statsResult.data) {
+        setStats(statsResult.data);
+      } else {
+        setError(statsResult.error || "Failed to load dashboard statistics");
+      }
+
+      if (analyticsResult.success && analyticsResult.data) {
+        setOrderStats(analyticsResult.data);
+      } else {
+        setError((prev) => prev || analyticsResult.error || "Failed to load analytics");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      console.error("Failed to fetch dashboard data:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [allUsers, verifiedUsers, unverifiedUsers, adminUsers, bannedUsers, analytics] = await Promise.all([
-          listUsers({ limit: 1000 }),
-          listUsers({ limit: 1000, emailVerified: true }),
-          listUsers({ limit: 1000, emailVerified: false }),
-          listUsers({ limit: 1000, role: "admin" }),
-          listUsers({ limit: 1000 }),
-          getAnalytics(),
-        ]);
-
-        const bannedCount = bannedUsers.users.filter((u: AdminUser) => u.banned).length;
-
-        setStats({
-          totalUsers: allUsers.pagination.total,
-          verifiedUsers: verifiedUsers.pagination.total,
-          unverifiedUsers: unverifiedUsers.pagination.total,
-          adminUsers: adminUsers.pagination.total,
-          bannedUsers: bannedCount,
-        });
-
-        if (analytics.success && analytics.data) {
-          setOrderStats(analytics.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
+    fetchData();
   }, []);
 
-  if (loading) {
+  if (error && !stats && !orderStats) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-16 mb-1" />
-              <Skeleton className="h-3 w-32" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription className="flex items-center justify-between">
+          <span>{error}</span>
+          <Button onClick={fetchData} variant="outline" size="sm" className="ml-4">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -74,7 +71,9 @@ export function DashboardOverview() {
       value: `৳${orderStats?.revenue.total.toLocaleString() || 0}`,
       description: "All time revenue",
       icon: DollarSign,
-      trend: orderStats?.revenue.growth ? `${orderStats.revenue.growth >= 0 ? "+" : ""}${orderStats.revenue.growth}%` : null,
+      trend: orderStats?.revenue.growth 
+        ? `${orderStats.revenue.growth >= 0 ? "+" : ""}${orderStats.revenue.growth}%`
+        : null,
       link: "/admin/analytics",
     },
     {
@@ -103,14 +102,63 @@ export function DashboardOverview() {
     },
   ];
 
+  const quickActions = [
+    {
+      title: "Manage Users",
+      description: "View and manage user accounts",
+      icon: UserPlus,
+      link: "/admin/users",
+    },
+    {
+      title: "View Analytics",
+      description: "Detailed analytics and reports",
+      icon: BarChart3,
+      link: "/admin/analytics",
+    },
+    {
+      title: "Settings",
+      description: "Configure application settings",
+      icon: Settings,
+      link: "/admin/settings",
+    },
+  ];
+
+  // Generate recent activity from analytics data
+  const recentActivity = orderStats?.recentOrders.slice(0, 5).map((order) => ({
+    id: order.id,
+    type: "order_created" as const,
+    message: `New order ${order.orderNumber} for ${order.product.name}`,
+    timestamp: new Date(order.createdAt),
+    link: `/admin/orders/${order.orderNumber}`,
+  })) || [];
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Dashboard Overview</h2>
-        <p className="text-muted-foreground">
-          Welcome to your admin dashboard. Here&apos;s what&apos;s happening with your users.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Dashboard Overview</h2>
+          <p className="text-muted-foreground">
+            Welcome to your admin dashboard. Here&apos;s what&apos;s happening.
+          </p>
+        </div>
+        <Button
+          onClick={fetchData}
+          variant="outline"
+          size="sm"
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Warning</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => {
@@ -129,16 +177,16 @@ export function DashboardOverview() {
                 <p className="text-xs text-muted-foreground">
                   {stat.description}
                 </p>
-                {stat.trend !== null && (
+                {stat.trend !== null && stat.trend && (
                   <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                    {stat.trend && stat.trend.startsWith("-") ? (
+                    {stat.trend.startsWith("-") ? (
                       <TrendingUp className="h-3 w-3 text-red-500 rotate-180" />
-                    ) : stat.trend && stat.trend.startsWith("+") ? (
+                    ) : stat.trend.startsWith("+") ? (
                       <TrendingUp className="h-3 w-3 text-green-500" />
                     ) : (
                       <TrendingUp className="h-3 w-3" />
                     )}
-                    {stat.trend && <span>{stat.trend} from last month</span>}
+                    <span>{stat.trend} from last month</span>
                   </div>
                 )}
               </CardContent>
@@ -163,22 +211,49 @@ export function DashboardOverview() {
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest user registrations and updates</CardDescription>
+            <CardDescription>Latest orders and user activity</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex size-10 items-center justify-center rounded-full bg-muted">
-                  <Activity className="h-5 w-5" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">System is running smoothly</p>
-                  <p className="text-xs text-muted-foreground">
-                    All services are operational
-                  </p>
+            {recentActivity.length === 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+                    <Activity className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium">No recent activity</p>
+                    <p className="text-xs text-muted-foreground">
+                      Activity will appear here as orders are created
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <Link
+                    key={activity.id}
+                    href={activity.link || "#"}
+                    className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+                      <Activity className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-medium">{activity.message}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.timestamp.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -189,15 +264,28 @@ export function DashboardOverview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                • Manage users and permissions
-              </p>
-              <p className="text-sm text-muted-foreground">
-                • View system analytics
-              </p>
-              <p className="text-sm text-muted-foreground">
-                • Configure application settings
-              </p>
+              {quickActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <Link key={action.title} href={action.link}>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      asChild
+                    >
+                      <div>
+                        <Icon className="h-4 w-4 mr-2" />
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">{action.title}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {action.description}
+                          </span>
+                        </div>
+                      </div>
+                    </Button>
+                  </Link>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -205,4 +293,3 @@ export function DashboardOverview() {
     </div>
   );
 }
-

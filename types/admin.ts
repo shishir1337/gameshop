@@ -101,3 +101,60 @@ export interface DashboardStats {
   bannedUsers: number;
 }
 
+/**
+ * Analytics data structure
+ */
+export interface AnalyticsData {
+  revenue: {
+    total: number;
+    today: number;
+    thisMonth: number;
+    lastMonth: number;
+    growth: number;
+  };
+  orders: {
+    total: number;
+    pending: number;
+    completed: number;
+    paid: number;
+    today: number;
+    thisMonth: number;
+  };
+  products: {
+    total: number;
+    active: number;
+  };
+  topProducts: Array<{
+    id: string;
+    name: string;
+    _count: {
+      orders: number;
+    };
+  }>;
+  recentOrders: Array<{
+    id: string;
+    orderNumber: string;
+    totalAmount: number;
+    paymentStatus: string;
+    createdAt: Date;
+    product: {
+      name: string;
+    };
+    user: {
+      name: string | null;
+      email: string;
+    } | null;
+  }>;
+}
+
+/**
+ * Recent activity item
+ */
+export interface RecentActivity {
+  id: string;
+  type: "user_registered" | "order_created" | "order_completed";
+  message: string;
+  timestamp: Date;
+  link?: string;
+}
+
