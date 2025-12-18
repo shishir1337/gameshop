@@ -36,6 +36,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -80,6 +90,14 @@ export function OrderManagement() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [orderNotes, setOrderNotes] = useState<string>("");
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    orderId: string;
+    type: "order" | "payment";
+    newStatus: OrderStatus | PaymentStatus;
+    currentStatus: OrderStatus | PaymentStatus;
+  } | null>(null);
+  const [orderStatusValues, setOrderStatusValues] = useState<Record<string, OrderStatus>>({});
+  const [paymentStatusValues, setPaymentStatusValues] = useState<Record<string, PaymentStatus>>({});
 
   const loadOrders = async () => {
     startTransition(async () => {
@@ -130,12 +148,34 @@ export function OrderManagement() {
       const result = await updateOrderStatus(orderId, newStatus);
       if (result.success) {
         toast.success("Order status updated");
+        // Remove from local state and reload
+        setOrderStatusValues((prev) => {
+          const updated = { ...prev };
+          delete updated[orderId];
+          return updated;
+        });
         loadOrders();
       } else {
         toast.error(result.error || "Failed to update order status");
+        // Reset to original value on error
+        setOrderStatusValues((prev) => {
+          const updated = { ...prev };
+          delete updated[orderId];
+          return updated;
+        });
+        loadOrders();
       }
     } catch (error) {
       toast.error("Failed to update order status");
+      // Reset to original value on error
+      setOrderStatusValues((prev) => {
+        const updated = { ...prev };
+        delete updated[orderId];
+        return updated;
+      });
+      loadOrders();
+    } finally {
+      setPendingStatusChange(null);
     }
   };
 
@@ -147,13 +187,72 @@ export function OrderManagement() {
       const result = await updatePaymentStatus(orderId, newStatus);
       if (result.success) {
         toast.success("Payment status updated");
+        // Remove from local state and reload
+        setPaymentStatusValues((prev) => {
+          const updated = { ...prev };
+          delete updated[orderId];
+          return updated;
+        });
         loadOrders();
       } else {
         toast.error(result.error || "Failed to update payment status");
+        // Reset to original value on error
+        setPaymentStatusValues((prev) => {
+          const updated = { ...prev };
+          delete updated[orderId];
+          return updated;
+        });
+        loadOrders();
       }
     } catch (error) {
       toast.error("Failed to update payment status");
+      // Reset to original value on error
+      setPaymentStatusValues((prev) => {
+        const updated = { ...prev };
+        delete updated[orderId];
+        return updated;
+      });
+      loadOrders();
+    } finally {
+      setPendingStatusChange(null);
     }
+  };
+
+  const confirmStatusChange = () => {
+    if (!pendingStatusChange) return;
+    
+    if (pendingStatusChange.type === "order") {
+      handleStatusUpdate(
+        pendingStatusChange.orderId,
+        pendingStatusChange.newStatus as OrderStatus
+      );
+    } else {
+      handlePaymentStatusUpdate(
+        pendingStatusChange.orderId,
+        pendingStatusChange.newStatus as PaymentStatus
+      );
+    }
+  };
+
+  const cancelStatusChange = () => {
+    if (!pendingStatusChange) return;
+    
+    // Reset the Select value to original
+    if (pendingStatusChange.type === "order") {
+      setOrderStatusValues((prev) => {
+        const updated = { ...prev };
+        delete updated[pendingStatusChange.orderId];
+        return updated;
+      });
+    } else {
+      setPaymentStatusValues((prev) => {
+        const updated = { ...prev };
+        delete updated[pendingStatusChange.orderId];
+        return updated;
+      });
+    }
+    
+    setPendingStatusChange(null);
   };
 
   const getStatusBadge = (status: OrderStatus) => {
@@ -360,10 +459,23 @@ export function OrderManagement() {
                       </TableCell>
                       <TableCell>
                         <Select
-                          value={order.status}
-                          onValueChange={(value) =>
-                            handleStatusUpdate(order.id, value as OrderStatus)
-                          }
+                          value={orderStatusValues[order.id] || order.status}
+                          onValueChange={(value) => {
+                            if (value !== order.status) {
+                              // Update display value immediately
+                              setOrderStatusValues((prev) => ({
+                                ...prev,
+                                [order.id]: value as OrderStatus,
+                              }));
+                              // Show confirmation dialog
+                              setPendingStatusChange({
+                                orderId: order.id,
+                                type: "order",
+                                newStatus: value as OrderStatus,
+                                currentStatus: order.status,
+                              });
+                            }
+                          }}
                         >
                           <SelectTrigger className="w-32">
                             <SelectValue />
@@ -379,13 +491,23 @@ export function OrderManagement() {
                       </TableCell>
                       <TableCell>
                         <Select
-                          value={order.paymentStatus}
-                          onValueChange={(value) =>
-                            handlePaymentStatusUpdate(
-                              order.id,
-                              value as PaymentStatus
-                            )
-                          }
+                          value={paymentStatusValues[order.id] || order.paymentStatus}
+                          onValueChange={(value) => {
+                            if (value !== order.paymentStatus) {
+                              // Update display value immediately
+                              setPaymentStatusValues((prev) => ({
+                                ...prev,
+                                [order.id]: value as PaymentStatus,
+                              }));
+                              // Show confirmation dialog
+                              setPendingStatusChange({
+                                orderId: order.id,
+                                type: "payment",
+                                newStatus: value as PaymentStatus,
+                                currentStatus: order.paymentStatus,
+                              });
+                            }
+                          }}
                         >
                           <SelectTrigger className="w-32">
                             <SelectValue />
@@ -574,6 +696,59 @@ export function OrderManagement() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Status Change Confirmation Dialog */}
+      <AlertDialog
+        open={pendingStatusChange !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            cancelStatusChange();
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingStatusChange?.type === "order"
+                ? "Change Order Status"
+                : "Change Payment Status"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to change the{" "}
+              {pendingStatusChange?.type === "order"
+                ? "order status"
+                : "payment status"}{" "}
+              from{" "}
+              <strong>
+                {pendingStatusChange?.currentStatus}
+              </strong>{" "}
+              to{" "}
+              <strong>
+                {pendingStatusChange?.newStatus}
+              </strong>
+              ?
+              {pendingStatusChange?.type === "order" &&
+                pendingStatusChange.newStatus === "CANCELLED" && (
+                  <span className="block mt-2 text-destructive">
+                    Warning: Cancelling an order cannot be undone.
+                  </span>
+                )}
+              {pendingStatusChange?.type === "payment" &&
+                pendingStatusChange.newStatus === "REFUNDED" && (
+                  <span className="block mt-2 text-destructive">
+                    Warning: Refunding a payment will update the order status.
+                  </span>
+                )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelStatusChange}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmStatusChange}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
