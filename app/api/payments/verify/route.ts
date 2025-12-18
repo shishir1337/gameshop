@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       paymentStatus: result.paymentStatus,
       orderStatus: result.orderStatus,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Verify payment API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

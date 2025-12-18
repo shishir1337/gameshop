@@ -171,13 +171,15 @@ export async function createProduct(data: unknown) {
     revalidatePath("/admin/products");
     revalidatePath("/");
     return { success: true, data: product };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create product error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
-      return { success: false, error: "Unauthorized" };
-    }
-    if (error.name === "ZodError") {
-      return { success: false, error: "Invalid data provided" };
+    if (error instanceof Error) {
+      if (error.message === "Unauthorized: Admin access required") {
+        return { success: false, error: "Unauthorized" };
+      }
+      if (error.name === "ZodError") {
+        return { success: false, error: "Invalid data provided" };
+      }
     }
     return { success: false, error: "Failed to create product" };
   }
@@ -251,13 +253,15 @@ export async function updateProduct(id: string, data: unknown) {
     }
     revalidatePath(`/products/${product.slug}`);
     return { success: true, data: product };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update product error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
-      return { success: false, error: "Unauthorized" };
-    }
-    if (error.name === "ZodError") {
-      return { success: false, error: "Invalid data provided" };
+    if (error instanceof Error) {
+      if (error.message === "Unauthorized: Admin access required") {
+        return { success: false, error: "Unauthorized" };
+      }
+      if (error.name === "ZodError") {
+        return { success: false, error: "Invalid data provided" };
+      }
     }
     return { success: false, error: "Failed to update product" };
   }
@@ -293,9 +297,9 @@ export async function deleteProduct(id: string) {
     revalidatePath("/admin/products");
     revalidatePath("/");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Delete product error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to delete product" };

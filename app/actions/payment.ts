@@ -78,11 +78,12 @@ export async function createPayment(orderId: string) {
       success: true,
       paymentUrl: paymentResult.paymentUrl,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create payment error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to create payment";
     return {
       success: false,
-      error: error.message || "Failed to create payment",
+      error: errorMessage,
     };
   }
 }
@@ -211,11 +212,12 @@ export async function verifyPayment(
       orderStatus: (orderStatus || updatedOrder.status) as "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED",
       verifyResult,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Verify payment error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to verify payment";
     return {
       success: false,
-      error: error.message || "Failed to verify payment",
+      error: errorMessage,
     };
   }
 }

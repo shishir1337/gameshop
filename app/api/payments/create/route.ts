@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       success: true,
       paymentUrl: result.paymentUrl,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create payment API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

@@ -177,12 +177,13 @@ export async function createOrder(data: unknown) {
         paymentUrl: paymentResult.success ? paymentResult.paymentUrl : undefined,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create order error:", error);
-    if (error.name === "ZodError") {
+    if (error instanceof Error && error.name === "ZodError") {
+      const zodError = error as { errors?: Array<{ message?: string }> };
       return {
         success: false,
-        error: error.errors?.[0]?.message || "Invalid data provided",
+        error: zodError.errors?.[0]?.message || "Invalid data provided",
       };
     }
     return { success: false, error: "Failed to create order" };
@@ -204,14 +205,14 @@ export async function getOrders(filters?: {
   }
 
   try {
-    const where: any = {};
+    const where: import("@prisma/client").Prisma.OrderWhereInput = {};
 
     if (filters?.status && filters.status !== "all") {
-      where.status = filters.status;
+      where.status = filters.status as import("@prisma/client").OrderStatus;
     }
 
     if (filters?.paymentStatus && filters.paymentStatus !== "all") {
-      where.paymentStatus = filters.paymentStatus;
+      where.paymentStatus = filters.paymentStatus as import("@prisma/client").PaymentStatus;
     }
 
     if (filters?.search) {
@@ -259,9 +260,9 @@ export async function getOrders(filters?: {
     });
 
     return { success: true, data: orders };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Get orders error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to fetch orders" };
@@ -315,9 +316,9 @@ export async function getOrder(id: string) {
     }
 
     return { success: true, data: order };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Get order error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to fetch order" };
@@ -354,9 +355,9 @@ export async function updateOrderStatus(
     revalidatePath(`/admin/orders/${orderId}`);
 
     return { success: true, data: order };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update order status error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to update order status" };
@@ -393,9 +394,9 @@ export async function updatePaymentStatus(
     revalidatePath(`/admin/orders/${orderId}`);
 
     return { success: true, data: order };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update payment status error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to update payment status" };
@@ -580,9 +581,9 @@ export async function exportOrdersToCSV(filters?: {
     ].join("\n");
 
     return { success: true, data: csvContent };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Export orders error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to export orders" };
@@ -609,9 +610,9 @@ export async function updateOrderNotes(orderId: string, notes: string) {
     revalidatePath(`/admin/orders/${orderId}`);
 
     return { success: true, data: order };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update order notes error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to update order notes" };

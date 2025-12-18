@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { updateProfileSchema } from "@/lib/validations/auth";
 import { sanitizeError } from "@/lib/utils/errors";
 import type { UpdateProfileRequest, UpdateProfileResponse } from "@/types/api";
-import type { UserProfile } from "@/types";
+import type { UserProfile, AuthUser } from "@/types";
 
 /**
  * Internal function to fetch current user (without caching)
@@ -129,20 +129,21 @@ export async function updateProfile(
     // Note: Cache will automatically expire based on revalidate time
     // Manual revalidation can be added when needed
 
-    const userProfile: UserProfile = {
+    // Build AuthUser object - AuthUser expects name as string (not null)
+    const authUser: AuthUser = {
       id: updatedUser.id,
-      name: updatedUser.name,
+      name: updatedUser.name ?? "",
       email: updatedUser.email,
-      image: updatedUser.image,
+      image: updatedUser.image ?? null,
       emailVerified: updatedUser.emailVerified,
       role: (updatedUser as { role?: string }).role || "user",
       createdAt: updatedUser.createdAt,
       updatedAt: updatedUser.updatedAt,
-    };
+    } as AuthUser;
 
     return {
       message: "Profile updated successfully",
-      user: userProfile,
+      user: authUser,
     };
   } catch (error: unknown) {
     const { message } = sanitizeError(error);

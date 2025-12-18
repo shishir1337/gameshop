@@ -155,9 +155,9 @@ export async function getAnalytics() {
         recentOrders,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Get analytics error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to fetch analytics" };

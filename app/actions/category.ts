@@ -95,9 +95,9 @@ export async function createCategory(data: unknown) {
 
     revalidatePath("/admin/categories");
     return { success: true, data: category };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create category error:", error);
-    if (error.name === "ZodError") {
+    if (error instanceof Error && error.name === "ZodError") {
       return { success: false, error: "Invalid data provided" };
     }
     return { success: false, error: "Failed to create category" };
@@ -129,13 +129,15 @@ export async function updateCategory(id: string, data: unknown) {
 
     revalidatePath("/admin/categories");
     return { success: true, data: category };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update category error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
-      return { success: false, error: "Unauthorized" };
-    }
-    if (error.name === "ZodError") {
-      return { success: false, error: "Invalid data provided" };
+    if (error instanceof Error) {
+      if (error.message === "Unauthorized: Admin access required") {
+        return { success: false, error: "Unauthorized" };
+      }
+      if (error.name === "ZodError") {
+        return { success: false, error: "Invalid data provided" };
+      }
     }
     return { success: false, error: "Failed to update category" };
   }
@@ -172,9 +174,9 @@ export async function deleteCategory(id: string) {
 
     revalidatePath("/admin/categories");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Delete category error:", error);
-    if (error.message === "Unauthorized: Admin access required") {
+    if (error instanceof Error && error.message === "Unauthorized: Admin access required") {
       return { success: false, error: "Unauthorized" };
     }
     return { success: false, error: "Failed to delete category" };

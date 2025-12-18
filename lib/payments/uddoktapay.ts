@@ -69,11 +69,12 @@ export class UddoktaPayGateway implements PaymentGateway {
         success: true,
         paymentUrl: data.payment_url,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("UddoktaPay create payment error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to create payment";
       return {
         success: false,
-        error: error.message || "Failed to create payment",
+        error: errorMessage,
       };
     }
   }
@@ -126,11 +127,12 @@ export class UddoktaPayGateway implements PaymentGateway {
         date: data.date,
         metadata: data.metadata,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("UddoktaPay verify payment error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to verify payment";
       return {
         success: false,
-        error: error.message || "Failed to verify payment",
+        error: errorMessage,
       };
     }
   }

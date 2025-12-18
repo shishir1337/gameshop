@@ -319,7 +319,7 @@ export function ProductManagement() {
     });
   };
 
-  const updateVariant = (index: number, field: keyof ProductVariantFormData, value: any) => {
+  const updateVariant = (index: number, field: keyof ProductVariantFormData, value: string | number | boolean) => {
     const newVariants = [...formData.variants];
     newVariants[index] = { ...newVariants[index], [field]: value };
     setFormData({ ...formData, variants: newVariants });
@@ -348,7 +348,7 @@ export function ProductManagement() {
     });
   };
 
-  const updateFormField = (index: number, field: keyof UserFormField, value: any) => {
+  const updateFormField = (index: number, field: keyof UserFormField, value: string | boolean | string[] | undefined) => {
     const newFields = [...(formData.userFormFields || [])];
     newFields[index] = { ...newFields[index], [field]: value };
     setFormData({ ...formData, userFormFields: newFields });

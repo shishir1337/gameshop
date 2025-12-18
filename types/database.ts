@@ -52,3 +52,42 @@ export type VerificationWithUser = Prisma.VerificationGetPayload<{
   };
 }>;
 
+// Order types
+export type OrderWhereInput = Prisma.OrderWhereInput;
+export type OrderWithRelations = Prisma.OrderGetPayload<{
+  include: {
+    product: {
+      select: {
+        id: true;
+        name: true;
+        slug: true;
+        image: true;
+      };
+    };
+    user: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+    items: {
+      include: {
+        variant: {
+          select: {
+            name: true;
+            price: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+// Product types
+export type ProductWithCategory = Prisma.ProductGetPayload<{
+  include: {
+    category: true;
+    variants: true;
+  };
+}>;
