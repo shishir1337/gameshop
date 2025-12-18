@@ -4,12 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, ArrowLeft, Package } from "lucide-react";
 import { verifyPayment } from "@/app/actions/payment";
+import { unstable_noStore } from "next/cache";
+
+// Mark this page as dynamic to prevent static generation
+export const dynamic = "force-dynamic";
 
 interface PaymentSuccessPageProps {
   searchParams: Promise<{ invoice_id?: string }>;
 }
 
 async function PaymentSuccessContent({ invoiceId }: { invoiceId?: string }) {
+  // Prevent caching of this component
+  unstable_noStore();
+  
   if (!invoiceId) {
     return (
       <Card>

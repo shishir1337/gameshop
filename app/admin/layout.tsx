@@ -1,9 +1,10 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { Menu } from "lucide-react";
+import { isAdmin } from "@/lib/utils/admin";
 
 export default async function AdminLayout({
   children,
@@ -18,22 +19,11 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  // Check if user has admin permissions
-  try {
-    const hasPermission = await auth.api.userHasPermission({
-      body: {
-        permission: {
-          user: ["list"],
-        },
-      },
-      headers: await headers(),
-    });
-
-    if (!hasPermission) {
-      redirect("/");
-    }
-  } catch {
-    redirect("/");
+  // Check if user is an admin
+  // If not admin, show 404 to prevent information disclosure
+  const userIsAdmin = await isAdmin();
+  if (!userIsAdmin) {
+    notFound();
   }
 
   return (

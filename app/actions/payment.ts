@@ -6,7 +6,6 @@ import {
   type PaymentProvider,
 } from "@/lib/payments";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 
 /**
  * Create payment for an order
@@ -172,9 +171,8 @@ export async function verifyPayment(
       },
     });
 
-    revalidatePath(`/orders/${order.orderNumber}`);
-    revalidatePath("/admin");
-    revalidatePath("/orders");
+    // Note: revalidatePath cannot be called during render.
+    // Revalidation will happen naturally on next page visit or via route handlers.
 
     // Send payment status email (only if status was updated and not PENDING)
     if (paymentStatus || orderStatus) {
