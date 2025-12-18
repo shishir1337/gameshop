@@ -123,6 +123,7 @@ export function OrderManagement() {
   // Filter orders
   useEffect(() => {
     loadOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, paymentStatusFilter]);
 
   // Search filter
@@ -165,7 +166,7 @@ export function OrderManagement() {
         });
         loadOrders();
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update order status");
       // Reset to original value on error
       setOrderStatusValues((prev) => {
@@ -204,7 +205,7 @@ export function OrderManagement() {
         });
         loadOrders();
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update payment status");
       // Reset to original value on error
       setPaymentStatusValues((prev) => {
@@ -319,7 +320,7 @@ export function OrderManagement() {
                 } else {
                   toast.error(result.error || "Failed to export orders");
                 }
-              } catch (error) {
+              } catch {
                 toast.error("Failed to export orders");
               }
             }}
@@ -529,7 +530,7 @@ export function OrderManagement() {
                           size="sm"
                           onClick={() => {
                             setSelectedOrder(order);
-                            setOrderNotes((order as any).notes || "");
+                            setOrderNotes(order.notes || "");
                             setIsDetailDialogOpen(true);
                           }}
                         >
@@ -679,7 +680,7 @@ export function OrderManagement() {
                       } else {
                         toast.error(result.error || "Failed to save notes");
                       }
-                    } catch (error) {
+                    } catch {
                       toast.error("Failed to save notes");
                     } finally {
                       setIsSavingNotes(false);

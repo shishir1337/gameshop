@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: "Webhook processed",
     });
-  } catch (error: unknown) {
+  } catch {
     // Log error without exposing sensitive details
     console.error("Webhook processing error");
     return NextResponse.json(

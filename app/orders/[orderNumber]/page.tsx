@@ -54,7 +54,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-screen flex-col bg-background font-sans">
       <main className="flex-1">
         <div className="mx-auto max-w-4xl px-4 py-8">
           {/* Back Button */}

@@ -155,19 +155,19 @@ export function ProductForm({
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
-          <div className="h-32 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+          <div className="h-8 w-48 bg-muted rounded"></div>
+          <div className="h-32 bg-muted rounded"></div>
         </div>
       </div>
     );
   }
 
-  let currentStepNumber = 1;
+  const currentStepNumber = 1;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-black dark:text-zinc-50">
+        <h2 className="text-xl font-semibold text-foreground">
           Checkout
         </h2>
       </div>
@@ -181,7 +181,7 @@ export function ProductForm({
             <div className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
               isStep1Complete
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-zinc-300 dark:border-zinc-700"
+                : "border-border"
             }`}>
               {isStep1Complete ? (
                 <CheckCircle2 className="h-5 w-5" />
@@ -190,10 +190,10 @@ export function ProductForm({
               )}
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-black dark:text-zinc-50">
+              <h3 className="text-lg font-semibold text-foreground">
                 Step {currentStepNumber}: Additional Information Required
               </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="text-sm text-muted-foreground">
                 Please provide the following information to complete your order.
               </p>
             </div>
@@ -297,12 +297,12 @@ export function ProductForm({
                         className={`font-semibold ${
                           isSelected
                             ? "text-primary"
-                            : "text-black dark:text-zinc-50"
+                            : "text-foreground"
                         }`}
                       >
                         {variant.name}
                       </p>
-                      <p className="text-lg font-bold text-black dark:text-zinc-50">
+                      <p className="text-lg font-bold text-foreground">
                         ৳{variant.price}
                       </p>
                     </div>
@@ -365,7 +365,7 @@ export function ProductForm({
             className="max-w-md"
           />
           {userEmail && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-muted-foreground">
               Logged in as {userEmail}
             </p>
           )}
@@ -403,32 +403,32 @@ export function ProductForm({
         <div className="ml-11 space-y-4">
           {/* Order Summary */}
           {selectedVariant && (
-            <div className="rounded-lg border bg-zinc-50 p-4 dark:bg-zinc-900 max-w-md">
-              <h4 className="font-semibold text-black dark:text-zinc-50 mb-3">
+            <div className="rounded-lg border bg-card p-4 max-w-md">
+              <h4 className="font-semibold text-foreground mb-3">
                 Order Summary
               </h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">
+                  <span className="text-muted-foreground">
                     Variant:
                   </span>
-                  <span className="font-medium text-black dark:text-zinc-50">
+                  <span className="font-medium text-foreground">
                     {selectedVariant.name}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">
+                  <span className="text-muted-foreground">
                     Amount:
                   </span>
-                  <span className="font-bold text-lg text-black dark:text-zinc-50">
+                  <span className="font-bold text-lg text-foreground">
                     ৳{selectedVariant.price}
                   </span>
                 </div>
                 <div className="flex justify-between pt-2 border-t">
-                  <span className="text-zinc-600 dark:text-zinc-400">
+                  <span className="text-muted-foreground">
                     Payment Method:
                   </span>
-                  <span className="font-medium text-black dark:text-zinc-50">
+                  <span className="font-medium text-foreground">
                     UddoktaPay
                   </span>
                 </div>
@@ -443,9 +443,9 @@ export function ProductForm({
       {/* Pay Now Button or Login Prompt */}
       {!isLoggedIn ? (
         <div className="space-y-4">
-          <div className="rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 p-6 text-center">
-            <LogIn className="mx-auto h-12 w-12 text-zinc-400 mb-4" />
-            <h3 className="text-lg font-semibold text-black dark:text-zinc-50 mb-2">
+          <div className="rounded-lg border-2 border-dashed border-border bg-card p-6 text-center">
+            <LogIn className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               Login Required
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">

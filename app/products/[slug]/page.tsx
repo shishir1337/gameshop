@@ -32,7 +32,7 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
     minPrice === maxPrice ? `৳${minPrice}` : `৳${minPrice} - ৳${maxPrice}`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-screen flex-col bg-background font-sans">
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-8">
           {/* Back Button */}
@@ -45,7 +45,7 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
 
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Product Image */}
-            <div className="relative aspect-square w-full overflow-hidden rounded-lg border bg-zinc-100 dark:bg-zinc-900">
+            <div className="relative aspect-square w-full overflow-hidden rounded-lg border bg-muted">
               {product.image ? (
                 <Image
                   src={product.image}
@@ -70,11 +70,11 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
                     <Badge variant="default">Active</Badge>
                   )}
                 </div>
-                <h1 className="text-4xl font-bold text-black dark:text-zinc-50">
+                <h1 className="text-4xl font-bold text-foreground">
                   {product.name}
                 </h1>
                 {product.description && (
-                  <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+                  <p className="mt-4 text-lg text-muted-foreground">
                     {product.description}
                   </p>
                 )}
@@ -84,10 +84,10 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
 
               {/* Price */}
               <div>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-sm text-muted-foreground">
                   Starting from
                 </p>
-                <p className="text-3xl font-bold text-black dark:text-zinc-50">
+                <p className="text-3xl font-bold text-foreground">
                   {priceDisplay}
                 </p>
               </div>
@@ -102,8 +102,8 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
               />
 
               {/* Product Meta */}
-              <div className="rounded-lg border bg-zinc-50 p-4 dark:bg-zinc-900">
-                <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <div className="rounded-lg border bg-card p-4">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex justify-between">
                     <span>Product ID:</span>
                     <span className="font-mono text-xs">{product.id}</span>

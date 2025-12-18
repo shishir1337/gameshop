@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import {
   getCategories,
@@ -82,7 +82,7 @@ export function CategoryManagement() {
     isActive: true,
   });
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     startTransition(async () => {
       try {
         const result = await getCategories();
@@ -97,10 +97,10 @@ export function CategoryManagement() {
         );
       }
     });
-  };
+  }, []);
 
   // Filter categories based on search and status
-  useEffect(() => {
+  const filteredCategoriesMemo = useMemo(() => {
     let filtered = categories;
 
     // Apply search filter
@@ -120,13 +120,16 @@ export function CategoryManagement() {
       );
     }
 
-    setFilteredCategories(filtered);
+    return filtered;
   }, [categories, search, statusFilter]);
 
   useEffect(() => {
+    setFilteredCategories(filteredCategoriesMemo);
+  }, [filteredCategoriesMemo]);
+
+  useEffect(() => {
     loadCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadCategories]);
 
   const handleCreate = async () => {
     startTransition(async () => {
@@ -404,7 +407,7 @@ export function CategoryManagement() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Category</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{category.name}"? This
+                                  Are you sure you want to delete &quot;{category.name}&quot;? This
                                   action cannot be undone. Categories with products cannot
                                   be deleted.
                                 </AlertDialogDescription>

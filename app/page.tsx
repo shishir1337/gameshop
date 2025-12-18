@@ -13,15 +13,15 @@ export default async function Home() {
   const products = productsResult.success ? productsResult.data || [] : [];
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-screen flex-col bg-background font-sans">
       <main className="flex-1">
         {/* Hero Section */}
         <div className="flex min-h-[60vh] items-center justify-center py-16 px-4">
           <div className="flex max-w-3xl flex-col items-center gap-8 text-center">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight text-black dark:text-zinc-50 sm:text-5xl">
+            <h1 className="text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
               GameShop
             </h1>
-            <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+            <p className="max-w-md text-lg leading-8 text-muted-foreground">
               Your one-stop shop for digital game top-ups and gift cards.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
@@ -42,7 +42,7 @@ export default async function Home() {
         </div>
 
         {/* Categories Section */}
-        <div className="border-t bg-white py-16 dark:bg-zinc-950">
+        <div className="border-t bg-card py-16">
           <div className="mx-auto max-w-6xl px-4">
             <div className="mb-8 text-center">
               <h2 className="text-3xl font-bold text-black dark:text-zinc-50">
@@ -66,7 +66,7 @@ export default async function Home() {
                   <Link
                     key={category.id}
                     href={`/categories/${category.slug}`}
-                    className="group rounded-lg border bg-white p-6 transition-shadow hover:shadow-lg dark:bg-zinc-900 dark:border-zinc-800"
+                    className="group rounded-lg border bg-card p-6 transition-shadow hover:shadow-lg"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -93,14 +93,14 @@ export default async function Home() {
         </div>
 
         {/* Products Section */}
-        <div className="border-t bg-zinc-50 py-16 dark:bg-black">
+        <div className="border-t bg-background py-16">
           <div className="mx-auto max-w-6xl px-4">
             <div className="mb-8">
               <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold text-black dark:text-zinc-50">
+                <h2 className="text-3xl font-bold text-foreground">
                   Featured Products
                 </h2>
-                <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+                <p className="mt-2 text-muted-foreground">
                   Browse our latest digital products and top-ups
                 </p>
               </div>

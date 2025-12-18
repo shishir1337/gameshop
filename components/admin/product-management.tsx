@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import {
   getProducts,
@@ -105,7 +105,7 @@ export function ProductManagement() {
     variants: [],
   });
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     startTransition(async () => {
       try {
         const result = await getProducts();
@@ -120,9 +120,9 @@ export function ProductManagement() {
         );
       }
     });
-  };
+  }, []);
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       const result = await getCategories();
       if (result.success && result.data) {
@@ -131,10 +131,10 @@ export function ProductManagement() {
     } catch (error) {
       console.error("Failed to load categories:", error);
     }
-  };
+  }, []);
 
   // Filter products
-  useEffect(() => {
+  const filteredProductsMemo = useMemo(() => {
     let filtered = products;
 
     // Apply search filter
@@ -160,11 +160,19 @@ export function ProductManagement() {
       filtered = filtered.filter((prod) => prod.categoryId === categoryFilter);
     }
 
-    setFilteredProducts(filtered);
+    return filtered;
   }, [products, search, statusFilter, categoryFilter]);
 
   useEffect(() => {
+    setFilteredProducts(filteredProductsMemo);
+  }, [filteredProductsMemo]);
+
+  useEffect(() => {
     loadProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     loadCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -528,7 +536,7 @@ export function ProductManagement() {
                     ))}
                     {formData.variants.length === 0 && (
                       <p className="text-sm text-muted-foreground">
-                        No variants added. Click "Add Variant" to add one.
+                        No variants added. Click &quot;Add Variant&quot; to add one.
                       </p>
                     )}
                   </div>
@@ -768,7 +776,7 @@ export function ProductManagement() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Product</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{product.name}"? This
+                                  Are you sure you want to delete &quot;{product.name}&quot;? This
                                   action cannot be undone. Products with orders cannot
                                   be deleted.
                                 </AlertDialogDescription>
@@ -958,7 +966,7 @@ export function ProductManagement() {
               ))}
               {formData.variants.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  No variants added. Click "Add Variant" to add one.
+                  No variants added. Click &quot;Add Variant&quot; to add one.
                 </p>
               )}
             </div>

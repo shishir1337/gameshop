@@ -122,7 +122,7 @@ export default async function PaymentSuccessPage({ searchParams }: PaymentSucces
   const invoiceId = params.invoice_id;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background font-sans px-4">
       <div className="w-full max-w-md">
         <Suspense
           fallback={

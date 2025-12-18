@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { randomBytes } from "crypto";
 import { requireAdmin } from "@/lib/utils/admin";
+import { checkRateLimit, getRateLimitKey } from "@/lib/utils/rate-limit";
 
 /**
  * Generate unique order number
@@ -38,6 +39,18 @@ export async function createOrder(data: unknown) {
     }
 
     const userId = session.user.id;
+
+    // Rate limiting: 10 orders per user per hour
+    const rateLimitKey = await getRateLimitKey("order:create", userId);
+    const rateLimit = await checkRateLimit(rateLimitKey, 10, 3600); // 10 orders per hour
+
+    if (!rateLimit.allowed) {
+      const resetMinutes = Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 60000);
+      return {
+        success: false,
+        error: `Too many orders. Please try again in ${resetMinutes} minute${resetMinutes !== 1 ? "s" : ""}.`,
+      };
+    }
 
     // Get user email from session/database
     const user = await prisma.user.findUnique({
@@ -570,7 +583,7 @@ export async function exportOrdersToCSV(filters?: {
         order.paymentProvider,
         order.paymentStatus,
         order.status,
-        (order as any).notes || "",
+        order.notes || "",
       ];
     });
 

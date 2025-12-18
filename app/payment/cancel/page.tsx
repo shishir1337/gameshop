@@ -5,7 +5,7 @@ import { XCircle, ArrowLeft, ShoppingCart } from "lucide-react";
 
 export default function PaymentCancelPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background font-sans px-4">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader>
@@ -18,7 +18,7 @@ export default function PaymentCancelPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="text-sm text-muted-foreground">
               If you would like to complete your purchase, you can return to the product page and try again.
             </p>
             <div className="flex gap-4">
